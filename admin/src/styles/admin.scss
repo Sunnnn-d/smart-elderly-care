@@ -1,0 +1,65 @@
+// 后台管理系统全局样式
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  height: 100%;
+  font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+}
+
+#app {
+  height: 100%;
+}
+
+// 侧边栏主题色
+.admin-sidebar {
+  .el-menu {
+    border-right: none;
+  }
+}
+
+// 表格样式优化
+.el-table {
+  th.el-table__cell {
+    background-color: #f5f7fa !important;
+    color: #333;
+    font-weight: 600;
+  }
+}
+
+// 卡片样式
+.el-card {
+  border-radius: 8px !important;
+}
+
+// 对话框
+.el-dialog {
+  border-radius: 12px !important;
+}
+
+// 统计卡片
+.stat-card {
+  padding: 24px;
+  border-radius: 12px;
+  color: #fff;
+  .stat-value {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 8px;
+  }
+  .stat-label {
+    font-size: 0.95rem;
+    opacity: 0.9;
+  }
+  .stat-icon {
+    font-size: 2.5rem;
+    opacity: 0.3;
+    position: absolute;
+    right: 20px;
+    top: 20px;
+  }
+}
