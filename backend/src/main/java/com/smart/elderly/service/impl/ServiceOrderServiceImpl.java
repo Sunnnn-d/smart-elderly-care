@@ -6,8 +6,10 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.smart.elderly.common.PageResult;
 import com.smart.elderly.common.Result;
+import com.smart.elderly.config.RabbitMQConfig;
 import com.smart.elderly.dto.AppointmentDTO;
 import com.smart.elderly.dto.DispatchDTO;
+import com.smart.elderly.dto.OrderNotifyDTO;
 import com.smart.elderly.dto.OrderQueryDTO;
 import com.smart.elderly.entity.Evaluation;
 import com.smart.elderly.entity.ServiceItem;
@@ -18,7 +20,11 @@ import com.smart.elderly.mapper.ServiceOrderMapper;
 import com.smart.elderly.service.MessageService;
 import com.smart.elderly.service.ServiceOrderService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
@@ -26,11 +32,13 @@ import java.time.format.DateTimeFormatter;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class ServiceOrderServiceImpl extends ServiceImpl<ServiceOrderMapper, ServiceOrder> implements ServiceOrderService {
 
     private final EvaluationMapper evaluationMapper;
     private final ServiceItemMapper serviceItemMapper;
     private final MessageService messageService;
+    private final RabbitTemplate rabbitTemplate;
 
     @Override
     public Result<PageResult<ServiceOrder>> pageList(OrderQueryDTO dto) {
@@ -53,6 +61,7 @@ public class ServiceOrderServiceImpl extends ServiceImpl<ServiceOrderMapper, Ser
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public Result<?> createOrder(AppointmentDTO dto) {
         // 查询服务项目信息
         ServiceItem serviceItem = serviceItemMapper.selectById(dto.getServiceId());
@@ -78,15 +87,15 @@ public class ServiceOrderServiceImpl extends ServiceImpl<ServiceOrderMapper, Ser
 
         this.save(order);
         
-        // 发送消息通知管理员有新订单
-        messageService.sendOrderMessageToAdmin(order.getId(), "order", "新订单预约", 
-            String.format("有新的服务订单：订单编号 %s，服务项目：%s，预约时间：%s，联系人：%s", 
+        sendOrderNotifyMessage(order.getId(), order.getOrderNo(), null, "create", "admin", "order", "新订单预约",
+            String.format("有新的服务订单：订单编号 %s，服务项目：%s，预约时间：%s，联系人：%s",
                 orderNo, serviceItem.getName(), dto.getAppointmentTime(), dto.getContactPhone()));
         
         return Result.success("预约成功，订单编号：" + orderNo);
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public Result<?> dispatchOrder(DispatchDTO dto) {
         ServiceOrder order = this.getById(dto.getOrderId());
         if (order == null) {
@@ -100,10 +109,9 @@ public class ServiceOrderServiceImpl extends ServiceImpl<ServiceOrderMapper, Ser
         order.setStatus(1); // 服务中
         this.updateById(order);
         
-        // 如果有用户ID，发送消息通知用户订单已受理
         if (order.getUserId() != null && order.getUserId() > 0) {
-            messageService.sendOrderMessageToUser(order.getUserId(), order.getId(), "order", "订单已受理", 
-                String.format("您的订单 %s 已受理，服务人员：%s，服务时间：%s", 
+            sendOrderNotifyMessage(order.getId(), order.getOrderNo(), order.getUserId(), "dispatch", "user", "order", "订单已受理",
+                String.format("您的订单 %s 已受理，服务人员：%s，服务时间：%s",
                     order.getOrderNo(), dto.getNurseName(), order.getAppointmentTime()));
         }
         
@@ -111,6 +119,7 @@ public class ServiceOrderServiceImpl extends ServiceImpl<ServiceOrderMapper, Ser
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public Result<?> completeOrder(Long orderId) {
         ServiceOrder order = this.getById(orderId);
         if (order == null) {
@@ -148,6 +157,7 @@ public class ServiceOrderServiceImpl extends ServiceImpl<ServiceOrderMapper, Ser
     /**
      * 超时自动取消订单
      */
+    @Transactional(rollbackFor = Exception.class)
     public void timeoutCancelOrder(Long orderId) {
         ServiceOrder order = this.getById(orderId);
         if (order != null && order.getStatus() == 0) {
@@ -157,9 +167,8 @@ public class ServiceOrderServiceImpl extends ServiceImpl<ServiceOrderMapper, Ser
             order.setCancelTime(LocalDateTime.now());
             this.updateById(order);
             
-            // 发送消息通知用户订单已取消
             if (order.getUserId() != null && order.getUserId() > 0) {
-                messageService.sendMessageToUser(order.getUserId(), "order", "订单已取消",
+                sendOrderNotifyMessage(order.getId(), order.getOrderNo(), order.getUserId(), "timeout_cancel", "user", "order", "订单已取消",
                     String.format("您的订单 %s 因超时未受理已自动取消，请重新预约", order.getOrderNo()));
             }
         }
@@ -200,14 +209,11 @@ public class ServiceOrderServiceImpl extends ServiceImpl<ServiceOrderMapper, Ser
         order.setCancelTime(LocalDateTime.now());
         this.updateById(order);
         
-        // 发送消息通知相关方
         if ("manual".equals(cancelType) && order.getUserId() != null && order.getUserId() > 0) {
-            // 用户自主取消，通知管理员
-            messageService.sendOrderMessageToAdmin(order.getId(), "order", "订单已取消",
+            sendOrderNotifyMessage(order.getId(), order.getOrderNo(), null, "manual_cancel", "admin", "order", "订单已取消",
                 String.format("用户取消了订单：订单编号 %s，服务项目：%s", order.getOrderNo(), order.getServiceName()));
         } else if ("admin".equals(cancelType) && order.getUserId() != null && order.getUserId() > 0) {
-            // 管理员取消，通知用户
-            messageService.sendMessageToUser(order.getUserId(), "order", "订单已取消",
+            sendOrderNotifyMessage(order.getId(), order.getOrderNo(), order.getUserId(), "admin_cancel", "user", "order", "订单已取消",
                 String.format("您的订单 %s 已被管理员取消，原因：%s", order.getOrderNo(), reason));
         }
         
@@ -226,5 +232,35 @@ public class ServiceOrderServiceImpl extends ServiceImpl<ServiceOrderMapper, Ser
             }
         }
         return order;
+    }
+
+    private void sendOrderNotifyMessage(Long orderId, String orderNo, Long userId, String eventType,
+                                        String targetType, String type, String title, String content) {
+        OrderNotifyDTO dto = OrderNotifyDTO.builder()
+                .orderId(orderId)
+                .orderNo(orderNo)
+                .userId(userId)
+                .eventType(eventType)
+                .targetType(targetType)
+                .type(type)
+                .title(title)
+                .content(content)
+                .build();
+
+        if (TransactionSynchronizationManager.isSynchronizationActive()) {
+            TransactionSynchronizationManager.registerSynchronization(
+                    new org.springframework.transaction.support.TransactionSynchronization() {
+                        @Override
+                        public void afterCommit() {
+                            log.info("事务提交后发送订单通知MQ消息: orderId={}, eventType={}", orderId, eventType);
+                            rabbitTemplate.convertAndSend(RabbitMQConfig.ORDER_NOTIFY_EXCHANGE,
+                                    "order.notify." + eventType, dto);
+                        }
+                    });
+        } else {
+            log.info("非事务环境发送订单通知MQ消息: orderId={}, eventType={}", orderId, eventType);
+            rabbitTemplate.convertAndSend(RabbitMQConfig.ORDER_NOTIFY_EXCHANGE,
+                    "order.notify." + eventType, dto);
+        }
     }
 }
