@@ -22,6 +22,18 @@ spring:
     connection-timeout: 60000
     publisher-confirm-type: correlated
     publisher-returns: true
+    listener:
+      simple:
+        auto-startup: false
+        retry:
+          enabled: true
+          max-attempts: 5
+          initial-interval: 3000
+          multiplier: 2.0
+          max-interval: 30000
+    connection:
+      requested-heartbeat: 30
+      shutdown-timeout: 60000
 
 mybatis-plus:
   mapper-locations: classpath:mapper/*.xml

@@ -6,6 +6,10 @@ import com.smart.elderly.service.MessageService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
+import org.springframework.amqp.rabbit.retry.MessageRecoverer;
+import org.springframework.amqp.rabbit.retry.RepublishMessageRecoverer;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
 
 import java.util.concurrent.ConcurrentHashMap;
@@ -16,6 +20,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class OrderNotifyConsumer {
 
     private final MessageService messageService;
+    private final RabbitTemplate rabbitTemplate;
 
     private final ConcurrentHashMap<String, Boolean> processedMessages = new ConcurrentHashMap<>();
 
@@ -42,5 +47,12 @@ public class OrderNotifyConsumer {
             processedMessages.remove(messageKey);
             throw e;
         }
+    }
+
+    @Bean
+    public MessageRecoverer messageRecoverer() {
+        return new RepublishMessageRecoverer(rabbitTemplate, 
+                RabbitMQConfig.ORDER_NOTIFY_EXCHANGE, 
+                "order.notify.deadletter");
     }
 }

@@ -163,4 +163,21 @@ public class MessageController {
         messageService.deleteAdminMessage(messageId);
         return Result.success();
     }
+
+    /**
+     * 消息服务健康检查
+     */
+    @GetMapping("/health")
+    public Result<String> healthCheck() {
+        return Result.success("消息服务正常");
+    }
+
+    /**
+     * 清理过期消息
+     */
+    @DeleteMapping("/clean-expired")
+    public Result<Void> cleanExpiredMessages(@RequestParam(defaultValue = "30") Integer days) {
+        messageService.cleanExpiredMessages(days);
+        return Result.success();
+    }
 }

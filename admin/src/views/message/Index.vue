@@ -150,10 +150,13 @@ const filteredMessages = computed(() => {
 const fetchMessages = async () => {
  loading.value = true;
  try {
- const res = await getAdminMessages({ pageNum: pageNum.value, pageSize: pageSize.value });
- messages.value = res.data?.records || [];
- total.value = res.data?.total || 0;
- totalUnread.value = messages.value.filter(m => m.readFlag === 0).length;
+ const [msgRes, countRes] = await Promise.all([
+ getAdminMessages({ pageNum: pageNum.value, pageSize: pageSize.value }),
+ getAdminUnreadCount()
+ ]);
+ messages.value = msgRes.data?.records || [];
+ total.value = msgRes.data?.total || 0;
+ totalUnread.value = countRes.data || 0;
  unreadCount.value = totalUnread.value;
  }
  catch (e) {

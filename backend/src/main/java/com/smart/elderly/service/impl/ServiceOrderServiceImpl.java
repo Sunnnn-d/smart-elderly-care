@@ -39,6 +39,7 @@ public class ServiceOrderServiceImpl extends ServiceImpl<ServiceOrderMapper, Ser
     private final ServiceItemMapper serviceItemMapper;
     private final MessageService messageService;
     private final RabbitTemplate rabbitTemplate;
+    private final RabbitMQConfig rabbitMQConfig;
 
     @Override
     public Result<PageResult<ServiceOrder>> pageList(OrderQueryDTO dto) {
@@ -252,15 +253,36 @@ public class ServiceOrderServiceImpl extends ServiceImpl<ServiceOrderMapper, Ser
                     new org.springframework.transaction.support.TransactionSynchronization() {
                         @Override
                         public void afterCommit() {
-                            log.info("事务提交后发送订单通知MQ消息: orderId={}, eventType={}", orderId, eventType);
-                            rabbitTemplate.convertAndSend(RabbitMQConfig.ORDER_NOTIFY_EXCHANGE,
-                                    "order.notify." + eventType, dto);
+                            sendMQMessage(dto, orderId, eventType);
                         }
                     });
         } else {
-            log.info("非事务环境发送订单通知MQ消息: orderId={}, eventType={}", orderId, eventType);
+            sendMQMessage(dto, orderId, eventType);
+        }
+    }
+
+    private void sendMQMessage(OrderNotifyDTO dto, Long orderId, String eventType) {
+        try {
+            log.info("发送订单通知MQ消息: orderId={}, eventType={}", orderId, eventType);
             rabbitTemplate.convertAndSend(RabbitMQConfig.ORDER_NOTIFY_EXCHANGE,
                     "order.notify." + eventType, dto);
+        } catch (Exception e) {
+            log.warn("发送MQ消息失败，使用降级方案直接写入数据库: orderId={}, eventType={}, error={}", 
+                    orderId, eventType, e.getMessage());
+            fallbackToDirectDatabaseWrite(dto);
+        }
+    }
+
+    private void fallbackToDirectDatabaseWrite(OrderNotifyDTO dto) {
+        try {
+            if ("admin".equals(dto.getTargetType())) {
+                messageService.sendOrderMessageToAdmin(dto.getOrderId(), dto.getType(), dto.getTitle(), dto.getContent());
+            } else if ("user".equals(dto.getTargetType())) {
+                messageService.sendOrderMessageToUser(dto.getUserId(), dto.getOrderId(), dto.getType(), dto.getTitle(), dto.getContent());
+            }
+            log.info("降级方案执行成功，消息已直接写入数据库: orderId={}, eventType={}", dto.getOrderId(), dto.getEventType());
+        } catch (Exception e) {
+            log.error("降级方案执行失败，消息发送失败: orderId={}, eventType={}", dto.getOrderId(), dto.getEventType(), e);
         }
     }
 }

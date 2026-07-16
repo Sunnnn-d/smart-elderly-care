@@ -7,16 +7,19 @@ import com.smart.elderly.entity.Message;
 import com.smart.elderly.mapper.AppUserMapper;
 import com.smart.elderly.mapper.MessageMapper;
 import com.smart.elderly.service.MessageService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import jakarta.annotation.Resource;
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
  * 消息服务实现类
  */
 @Service
+@Slf4j
 public class MessageServiceImpl implements MessageService {
 
     @Resource
@@ -185,5 +188,15 @@ public class MessageServiceImpl implements MessageService {
         message.setContent(content);
         message.setReadFlag(0);
         messageMapper.insert(message);
+    }
+
+    @Override
+    @Transactional
+    public void cleanExpiredMessages(Integer days) {
+        LocalDateTime expireTime = LocalDateTime.now().minusDays(days);
+        LambdaQueryWrapper<Message> wrapper = new LambdaQueryWrapper<>();
+        wrapper.lt(Message::getCreateTime, expireTime);
+        int deletedCount = messageMapper.delete(wrapper);
+        log.info("清理过期消息完成，删除 {} 天前的消息 {} 条", days, deletedCount);
     }
 }

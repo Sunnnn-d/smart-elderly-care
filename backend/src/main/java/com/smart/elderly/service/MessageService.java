@@ -84,4 +84,9 @@ public interface MessageService {
      * 发送带订单关联的消息给管理员
      */
     void sendOrderMessageToAdmin(Long orderId, String type, String title, String content);
+
+    /**
+     * 清理过期消息
+     */
+    void cleanExpiredMessages(Integer days);
 }

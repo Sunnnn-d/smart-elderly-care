@@ -131,6 +131,7 @@ CREATE TABLE `service_item` (
 DROP TABLE IF EXISTS `service_order`;
 CREATE TABLE `service_order` (
   `id` BIGINT NOT NULL AUTO_INCREMENT COMMENT '主键ID',
+  `user_id` BIGINT DEFAULT NULL COMMENT '客户端用户ID',
   `order_no` VARCHAR(30) NOT NULL COMMENT '订单编号',
   `elderly_id` BIGINT DEFAULT NULL COMMENT '老人ID',
   `elderly_name` VARCHAR(50) DEFAULT NULL COMMENT '老人姓名',
@@ -146,11 +147,16 @@ CREATE TABLE `service_order` (
   `status` TINYINT NOT NULL DEFAULT 0 COMMENT '订单状态：0-待派单 1-服务中 2-已完成 3-已取消',
   `complete_time` DATETIME DEFAULT NULL COMMENT '完成时间',
   `cancel_reason` VARCHAR(500) DEFAULT NULL COMMENT '取消原因',
+  `cancel_type` VARCHAR(20) DEFAULT 'manual' COMMENT '取消类型：manual-用户自主取消，admin-管理员取消，timeout-超时自动取消',
+  `cancel_time` DATETIME DEFAULT NULL COMMENT '取消时间',
   `create_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   `update_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
   `deleted` TINYINT NOT NULL DEFAULT 0 COMMENT '逻辑删除：0-未删除 1-已删除',
   PRIMARY KEY (`id`),
-  UNIQUE KEY `uk_order_no` (`order_no`)
+  UNIQUE KEY `uk_order_no` (`order_no`),
+  KEY `idx_user_id` (`user_id`),
+  KEY `idx_cancel_type` (`cancel_type`),
+  KEY `idx_cancel_time` (`cancel_time`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='服务订单表';
 
 -- ============================================================
@@ -505,6 +511,29 @@ CREATE TABLE `activity_signup` (
   KEY `idx_elderly_id` (`elderly_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='活动报名表';
 
+-- ============================================================
+-- 21. 消息通知表（消息通知模块）
+-- ============================================================
+DROP TABLE IF EXISTS `tb_message`;
+CREATE TABLE `tb_message` (
+  `id` BIGINT NOT NULL AUTO_INCREMENT COMMENT '主键ID',
+  `user_id` BIGINT NOT NULL DEFAULT 0 COMMENT '接收用户ID（客户端用户ID，为0表示系统消息）',
+  `target_type` VARCHAR(20) NOT NULL DEFAULT 'user' COMMENT '消息接收者类型：user-客户端用户，admin-管理员',
+  `order_id` BIGINT DEFAULT 0 COMMENT '关联订单ID',
+  `type` VARCHAR(20) NOT NULL DEFAULT 'other' COMMENT '消息类型：system-系统通知，order-订单消息，service-服务提醒，other-其他',
+  `title` VARCHAR(100) NOT NULL COMMENT '消息标题',
+  `content` TEXT NOT NULL COMMENT '消息内容',
+  `read_flag` TINYINT NOT NULL DEFAULT 0 COMMENT '是否已读：0-未读，1-已读',
+  `create_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `update_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+  PRIMARY KEY (`id`),
+  KEY `idx_user_id` (`user_id`),
+  KEY `idx_target_type` (`target_type`),
+  KEY `idx_order_id` (`order_id`),
+  KEY `idx_read_flag` (`read_flag`),
+  KEY `idx_create_time` (`create_time`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='消息通知表';
+
 
 -- ============================================================
 -- 初始化数据
@@ -542,23 +571,38 @@ INSERT INTO `service_item` (`name`, `category`, `description`, `price`, `unit`, 
 ('中医推拿', '康复', '持证中医师提供推拿按摩服务，缓解肌肉酸痛，促进血液循环', 130.00, '次', 60, 1, 8);
 
 -- 服务订单
-INSERT INTO `service_order` (`order_no`, `elderly_id`, `elderly_name`, `service_id`, `service_name`, `service_price`, `nurse_id`, `nurse_name`, `appointment_time`, `contact_phone`, `address`, `remark`, `status`) VALUES
-('ORD20260501001', 1, '王大爷', 1, '营养助餐', 25.00, 3, '张护理', '2026-05-05 11:30:00', '13900000001', '幸福路100号3栋201', '少盐少油', 2),
-('ORD20260501002', 2, '李奶奶', 3, '日常护理', 120.00, 4, '李护理', '2026-05-06 09:00:00', '13900000002', '和平街50号1单元302', '需要协助如厕', 1),
-('ORD20260502001', 3, '张爷爷', 4, '康复理疗', 150.00, 3, '张护理', '2026-05-07 14:00:00', '13900000003', '建设路88号2栋101', '膝关节康复', 0),
-('ORD20260502002', 4, '赵奶奶', 5, '陪伴聊天', 60.00, NULL, NULL, '2026-05-08 10:00:00', '13900000004', '人民路66号5栋402', NULL, 0),
-('ORD20260503001', 5, '刘大爷', 2, '居家保洁', 80.00, 4, '李护理', '2026-05-04 15:00:00', '13900000005', '光明路22号3单元501', NULL, 2);
+INSERT INTO `service_order` (`user_id`, `order_no`, `elderly_id`, `elderly_name`, `service_id`, `service_name`, `service_price`, `nurse_id`, `nurse_name`, `appointment_time`, `contact_phone`, `address`, `remark`, `status`, `complete_time`, `cancel_reason`, `cancel_type`, `cancel_time`) VALUES
+(1, 'ORD20260501001', 1, '王大爷', 1, '营养助餐', 25.00, 3, '张护理', '2026-05-05 11:30:00', '13900000001', '幸福路100号3栋201', '少盐少油', 2, '2026-05-05 12:30:00', NULL, NULL, NULL),
+(2, 'ORD20260501002', 2, '李奶奶', 3, '日常护理', 120.00, 4, '李护理', '2026-05-06 09:00:00', '13900000002', '和平街50号1单元302', '需要协助如厕', 2, '2026-05-06 12:00:00', NULL, NULL, NULL),
+(1, 'ORD20260502001', 3, '张爷爷', 4, '康复理疗', 150.00, 3, '张护理', '2026-05-07 14:00:00', '13900000003', '建设路88号2栋101', '膝关节康复', 0, NULL, NULL, NULL, NULL),
+(2, 'ORD20260502002', 4, '赵奶奶', 5, '陪伴聊天', 60.00, NULL, NULL, '2026-05-08 10:00:00', '13900000004', '人民路66号5栋402', NULL, 0, NULL, NULL, NULL, NULL),
+(1, 'ORD20260503001', 5, '刘大爷', 2, '居家保洁', 80.00, 4, '李护理', '2026-05-04 15:00:00', '13900000005', '光明路22号3单元501', NULL, 2, '2026-05-04 17:00:00', NULL, NULL, NULL),
+(1, 'ORD20260504001', 1, '王大爷', 6, '代购代办', 40.00, NULL, NULL, '2026-05-10 09:00:00', '13900000001', '幸福路100号3栋201', '购买日用品', 0, NULL, NULL, NULL, NULL),
+(2, 'ORD20260504002', 2, '李奶奶', 7, '洗浴护理', 100.00, 4, '李护理', '2026-05-11 14:00:00', '13900000002', '和平街50号1单元302', NULL, 2, '2026-05-11 15:30:00', NULL, NULL, NULL),
+(1, 'ORD20260505001', 3, '张爷爷', 4, '康复理疗', 150.00, 3, '张护理', '2026-05-12 14:00:00', '13900000003', '建设路88号2栋101', '继续康复训练', 1, NULL, NULL, NULL, NULL),
+(2, 'ORD20260505002', 4, '赵奶奶', 5, '陪伴聊天', 60.00, 3, '张护理', '2026-05-13 10:00:00', '13900000004', '人民路66号5栋402', '下午聊天', 2, '2026-05-13 12:00:00', NULL, NULL, NULL),
+(1, 'ORD20260506001', 5, '刘大爷', 8, '中医推拿', 130.00, NULL, NULL, '2026-05-14 15:00:00', '13900000005', '光明路22号3单元501', '肩颈酸痛', 3, NULL, '身体不适取消', 'manual', '2026-05-13 10:00:00');
 
 -- 评价
 INSERT INTO `evaluation` (`order_id`, `order_no`, `elderly_id`, `elderly_name`, `nurse_id`, `nurse_name`, `score`, `content`) VALUES
 (1, 'ORD20260501001', 1, '王大爷', 3, '张护理', 5, '饭菜很合口味，服务态度很好！'),
-(5, 'ORD20260503001', 5, '刘大爷', 4, '李护理', 4, '打扫得很干净，非常满意');
+(5, 'ORD20260503001', 5, '刘大爷', 4, '李护理', 4, '打扫得很干净，非常满意'),
+(7, 'ORD20260504002', 2, '李奶奶', 4, '李护理', 5, '服务周到，非常满意！'),
+(9, 'ORD20260505002', 4, '赵奶奶', 3, '张护理', 5, '聊天很愉快，心情好多了'),
+(2, 'ORD20260501002', 2, '李奶奶', 4, '李护理', 4, '护理很专业，态度也好');
 
 -- 健康记录
 INSERT INTO `health_record` (`elderly_id`, `elderly_name`, `heart_rate`, `blood_pressure_high`, `blood_pressure_low`, `blood_sugar`, `temperature`, `weight`, `oxygen_saturation`, `mood`, `remark`, `record_time`, `recorder_id`, `recorder_name`) VALUES
 (1, '王大爷', 72, 135, 85, 6.8, 36.5, 68.0, 97.50, 1, '血压偏高，注意饮食', '2026-05-09 08:00:00', 3, '张护理'),
 (2, '李奶奶', 68, 128, 78, 5.6, 36.3, 55.0, 98.00, 2, '睡眠质量一般', '2026-05-09 08:30:00', 4, '李护理'),
-(3, '张爷爷', 75, 142, 90, 7.2, 36.6, 72.0, 96.80, 1, '心率正常范围', '2026-05-09 09:00:00', 3, '张护理');
+(3, '张爷爷', 75, 142, 90, 7.2, 36.6, 72.0, 96.80, 1, '心率正常范围', '2026-05-09 09:00:00', 3, '张护理'),
+(4, '赵奶奶', 70, 125, 75, 5.8, 36.4, 58.5, 97.80, 1, '精神状态良好', '2026-05-09 09:30:00', 3, '张护理'),
+(5, '刘大爷', 68, 130, 80, 6.2, 36.5, 70.0, 98.20, 1, '血压控制良好', '2026-05-09 10:00:00', 4, '李护理'),
+(1, '王大爷', 74, 138, 86, 7.0, 36.6, 68.2, 97.00, 2, '血压略升，已调整用药', '2026-05-10 08:00:00', 3, '张护理'),
+(2, '李奶奶', 66, 126, 76, 5.5, 36.2, 54.8, 98.10, 1, '睡眠改善', '2026-05-10 08:30:00', 4, '李护理'),
+(3, '张爷爷', 73, 138, 88, 7.1, 36.5, 71.8, 96.50, 1, '康复训练效果良好', '2026-05-10 09:00:00', 3, '张护理'),
+(1, '王大爷', 70, 132, 82, 6.6, 36.4, 68.0, 97.60, 1, '血压平稳', '2026-05-11 08:00:00', 3, '张护理'),
+(5, '刘大爷', 67, 128, 78, 6.0, 36.5, 69.8, 98.00, 2, '血糖正常', '2026-05-11 08:30:00', 4, '李护理');
 
 -- 护理计划
 INSERT INTO `care_plan` (`elderly_id`, `elderly_name`, `nurse_id`, `nurse_name`, `plan_name`, `care_type`, `content`, `frequency`, `start_date`, `end_date`, `status`) VALUES
@@ -602,13 +646,27 @@ INSERT INTO `medication_record` (`plan_id`, `elderly_id`, `elderly_name`, `medic
 (1, 1, '王大爷', '硝苯地平缓释片', '1片', '2026-05-09 18:00:00', 1, 3, '张护理', NULL),
 (2, 1, '王大爷', '二甲双胍', '1片', '2026-05-09 08:00:00', 1, 3, '张护理', NULL),
 (2, 1, '王大爷', '二甲双胍', '1片', '2026-05-09 12:00:00', 2, NULL, NULL, '漏服'),
-(3, 2, '李奶奶', '钙片', '2片', '2026-05-09 20:00:00', 1, 4, '李护理', NULL);
+(3, 2, '李奶奶', '钙片', '2片', '2026-05-09 20:00:00', 1, 4, '李护理', NULL),
+(4, 3, '张爷爷', '硝酸甘油', '1片', '2026-05-09 08:00:00', 1, 3, '张护理', NULL),
+(1, 1, '王大爷', '硝苯地平缓释片', '1片', '2026-05-10 08:00:00', 1, 3, '张护理', NULL),
+(1, 1, '王大爷', '硝苯地平缓释片', '1片', '2026-05-10 18:00:00', 1, 3, '张护理', NULL),
+(2, 1, '王大爷', '二甲双胍', '1片', '2026-05-10 08:00:00', 1, 3, '张护理', NULL),
+(2, 1, '王大爷', '二甲双胍', '1片', '2026-05-10 12:00:00', 1, 3, '张护理', NULL),
+(2, 1, '王大爷', '二甲双胍', '1片', '2026-05-10 18:00:00', 1, 3, '张护理', NULL),
+(3, 2, '李奶奶', '钙片', '2片', '2026-05-10 20:00:00', 1, 4, '李护理', NULL),
+(4, 3, '张爷爷', '硝酸甘油', '1片', '2026-05-10 08:00:00', 1, 3, '张护理', NULL),
+(1, 1, '王大爷', '硝苯地平缓释片', '1片', '2026-05-11 08:00:00', 1, 3, '张护理', NULL),
+(3, 2, '李奶奶', '钙片', '2片', '2026-05-11 20:00:00', 3, NULL, NULL, '拒服');
 
 -- 紧急呼叫
 INSERT INTO `emergency_call` (`elderly_id`, `elderly_name`, `room_number`, `call_time`, `call_type`, `status`, `responder_id`, `responder_name`, `response_time`, `handle_result`, `location_lat`, `location_lng`) VALUES
 (2, '李奶奶', '101', '2026-05-08 14:30:00', 'emergency', 2, 4, '李护理', '2026-05-08 14:32:00', '老人突发头晕，已送医检查，无大碍', 30.5728, 104.0668),
 (1, '王大爷', '101', '2026-05-06 09:15:00', 'health', 2, 3, '张护理', '2026-05-06 09:18:00', '血压偏高，已调整用药', 30.5728, 104.0668),
-(4, '赵奶奶', '102', '2026-05-09 16:00:00', 'other', 1, 3, '张护理', '2026-05-09 16:05:00', '老人想找人聊天', 30.5729, 104.0669);
+(4, '赵奶奶', '102', '2026-05-09 16:00:00', 'other', 1, 3, '张护理', '2026-05-09 16:05:00', '老人想找人聊天', 30.5729, 104.0669),
+(3, '张爷爷', '102', '2026-05-11 10:30:00', 'fall', 2, 3, '张护理', '2026-05-11 10:35:00', '老人不慎跌倒，已检查无骨折', 30.5729, 104.0669),
+(5, '刘大爷', '103', '2026-05-12 22:15:00', 'emergency', 2, 4, '李护理', '2026-05-12 22:20:00', '胸闷不适，已送医', 30.5730, 104.0670),
+(2, '李奶奶', '101', '2026-05-13 15:00:00', 'health', 1, 4, '李护理', '2026-05-13 15:05:00', '血糖偏低，已补充糖分', 30.5728, 104.0668),
+(1, '王大爷', '101', '2026-05-14 08:45:00', 'other', 2, 3, '张护理', '2026-05-14 08:50:00', '呼叫维修空调', 30.5728, 104.0668);
 
 -- 房间
 INSERT INTO `room` (`room_number`, `floor`, `room_type`, `bed_count`, `window_direction`, `facility`, `status`, `remark`) VALUES
@@ -712,7 +770,16 @@ INSERT INTO `activity_signup` (`activity_id`, `activity_name`, `elderly_id`, `el
 (4, '志愿者陪伴聊天', 4, '赵奶奶', '2026-06-05 14:00:00', 0, NULL, NULL),
 (5, '书法兴趣班', 3, '张爷爷', '2026-06-08 10:00:00', 0, NULL, '有书法基础');
 
-
-ALTER TABLE service_order 
-ADD COLUMN cancel_type VARCHAR(20) DEFAULT 'manual' COMMENT '取消类型' AFTER cancel_reason,
-ADD COLUMN cancel_time DATETIME COMMENT '取消时间' AFTER cancel_type;
+-- 消息通知
+INSERT INTO `tb_message` (`user_id`, `target_type`, `type`, `title`, `content`, `read_flag`) VALUES
+(0, 'user', 'system', 'Welcome to Smart Elderly Care Platform', 'Thank you for registering!', 0),
+(0, 'user', 'system', 'Maintenance Notice', 'System maintenance tonight 22:00-00:00', 0),
+(1, 'user', 'order', '订单已完成', '您的订单 ORD20260501001 营养助餐服务已完成', 1),
+(1, 'user', 'order', '订单待支付', '您有新的订单 ORD20260504001 待处理', 0),
+(2, 'user', 'order', '订单已分配', '您的订单 ORD20260501002 已分配给护理员李护理', 0),
+(1, 'user', 'service', '服务提醒', '王大爷的康复理疗预约时间为今天下午14:00', 0),
+(2, 'user', 'service', '用药提醒', '李奶奶的钙片需要在今晚20:00服用', 1),
+(0, 'admin', 'system', '紧急呼叫通知', '李奶奶于2026-05-08 14:30发起紧急呼叫', 1),
+(0, 'admin', 'system', '服务超时警告', '订单 ORD20260506001 已超时自动取消', 0),
+(1, 'user', 'other', '活动邀请', '端午节包粽子活动将于5月31日举行，欢迎参加', 0),
+(2, 'user', 'other', '健康报告', '李奶奶本周健康监测报告已生成，请查看', 1);

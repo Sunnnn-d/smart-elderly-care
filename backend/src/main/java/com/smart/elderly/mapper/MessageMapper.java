@@ -13,8 +13,8 @@ import org.apache.ibatis.annotations.Select;
 public interface MessageMapper extends BaseMapper<Message> {
 
     /**
-     * 获取用户未读消息数量
+     * 获取用户未读消息数量（包含系统消息）
      */
-    @Select("SELECT COUNT(*) FROM tb_message WHERE user_id = #{userId} AND read_flag = 0")
+    @Select("SELECT COUNT(*) FROM tb_message WHERE target_type = 'user' AND read_flag = 0 AND (user_id = #{userId} OR user_id = 0)")
     Integer countUnreadByUserId(@Param("userId") Long userId);
 }
