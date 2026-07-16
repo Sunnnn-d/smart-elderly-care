@@ -149,12 +149,12 @@
         <el-row :gutter="20">
           <el-col :span="12">
             <el-form-item label="开始时间">
-              <el-datetime-picker v-model="activityForm.startTime" type="datetime" style="width:100%" />
+              <el-date-picker v-model="activityForm.startTime" type="datetime" style="width:100%" />
             </el-form-item>
           </el-col>
           <el-col :span="12">
             <el-form-item label="结束时间">
-              <el-datetime-picker v-model="activityForm.endTime" type="datetime" style="width:100%" />
+              <el-date-picker v-model="activityForm.endTime" type="datetime" style="width:100%" />
             </el-form-item>
           </el-col>
         </el-row>

@@ -22,8 +22,8 @@ public class FeeItemServiceImpl extends ServiceImpl<FeeItemMapper, FeeItem> impl
 
     @Override
     public Result<PageResult<FeeItem>> pageList(Map<String, Object> params) {
-        Integer pageNum = params.get("pageNum") != null ? (Integer) params.get("pageNum") : 1;
-        Integer pageSize = params.get("pageSize") != null ? (Integer) params.get("pageSize") : 10;
+        Integer pageNum = params.get("pageNum") != null ? Integer.parseInt(String.valueOf(params.get("pageNum"))) : 1;
+        Integer pageSize = params.get("pageSize") != null ? Integer.parseInt(String.valueOf(params.get("pageSize"))) : 10;
         
         LambdaQueryWrapper<FeeItem> wrapper = new LambdaQueryWrapper<>();
         if (params.containsKey("itemName") && StringUtils.hasText((String) params.get("itemName"))) {
@@ -33,7 +33,7 @@ public class FeeItemServiceImpl extends ServiceImpl<FeeItemMapper, FeeItem> impl
             wrapper.eq(FeeItem::getFeeType, params.get("feeType"));
         }
         if (params.containsKey("status")) {
-            wrapper.eq(FeeItem::getStatus, params.get("status"));
+            wrapper.eq(FeeItem::getStatus, Integer.parseInt(String.valueOf(params.get("status"))));
         }
         wrapper.orderByAsc(FeeItem::getSortOrder);
 

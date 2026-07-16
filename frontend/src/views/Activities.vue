@@ -7,66 +7,67 @@
 
     <div class="activities-container">
       <div v-loading="loading" class="activity-list">
-        <el-empty v-if="activities.length === 0" description="暂无活动" />
-        <div v-for="activity in activities" :key="activity.id" class="activity-card">
+        <template>
+          <el-empty v-if="activities.length === 0" description="暂无活动" />
+          <div v-for="activity in activities" :key="activity?.id" v-if="activity" class="activity-card">
           <div class="activity-header">
             <div class="activity-type">
-              <el-tag :type="getActivityTypeTag(activity.activityType)">
-                {{ getActivityTypeText(activity.activityType) }}
+              <el-tag :type="getActivityTypeTag(activity?.activityType)">
+                {{ getActivityTypeText(activity?.activityType) }}
               </el-tag>
             </div>
-            <el-tag :type="getActivityStatusTag(activity.status)">
-              {{ getActivityStatusText(activity.status) }}
+            <el-tag :type="getActivityStatusTag(activity?.status)">
+              {{ getActivityStatusText(activity?.status) }}
             </el-tag>
           </div>
-          <h3>{{ activity.activityName }}</h3>
-          <p class="activity-desc">{{ activity.description }}</p>
+          <h3>{{ activity?.activityName || '-' }}</h3>
+          <p class="activity-desc">{{ activity?.description || '-' }}</p>
           <div class="activity-info">
             <div class="info-item">
               <el-icon><Calendar /></el-icon>
-              <span>{{ activity.startTime }} ~ {{ activity.endTime }}</span>
+              <span>{{ activity?.startTime || '-' }} ~ {{ activity?.endTime || '-' }}</span>
             </div>
             <div class="info-item">
               <el-icon><Location /></el-icon>
-              <span>{{ activity.location }}</span>
+              <span>{{ activity?.location || '-' }}</span>
             </div>
             <div class="info-item">
               <el-icon><User /></el-icon>
-              <span>{{ activity.currentParticipants }}/{{ activity.maxParticipants }}人</span>
+              <span>{{ activity?.currentParticipants || 0 }}/{{ activity?.maxParticipants || 0 }}人</span>
             </div>
             <div class="info-item">
               <el-icon><UserFilled /></el-icon>
-              <span>组织者：{{ activity.organizerName }}</span>
+              <span>组织者：{{ activity?.organizerName || '-' }}</span>
             </div>
           </div>
           <div class="activity-footer">
             <el-button 
-              v-if="activity.status === 1" 
+              v-if="activity?.status === 1" 
               type="primary" 
               round 
-              :disabled="hasSignedUp(activity.id)"
+              :disabled="hasSignedUp(activity?.id)"
               @click="handleSignup(activity)"
             >
-              {{ hasSignedUp(activity.id) ? '已报名' : '立即报名' }}
+              {{ hasSignedUp(activity?.id) ? '已报名' : '立即报名' }}
             </el-button>
             <el-button 
-              v-if="activity.status === 2" 
+              v-if="activity?.status === 2" 
               type="success" 
               round 
-              :disabled="hasSignedIn(activity.id)"
+              :disabled="hasSignedIn(activity?.id)"
               @click="handleSignIn(activity)"
             >
-              {{ hasSignedIn(activity.id) ? '已签到' : '立即签到' }}
+              {{ hasSignedIn(activity?.id) ? '已签到' : '立即签到' }}
             </el-button>
             <el-button 
-              v-if="activity.status === 3" 
+              v-if="activity?.status === 3" 
               disabled 
               round
             >
               活动已结束
             </el-button>
             <el-button 
-              v-if="activity.status === 0" 
+              v-if="activity?.status === 0" 
               disabled 
               round
             >
@@ -74,16 +75,17 @@
             </el-button>
           </div>
         </div>
+        </template>
       </div>
     </div>
 
     <el-dialog v-model="signupDialogVisible" title="确认报名" width="450px">
       <div v-if="currentActivity">
         <el-descriptions :column="2" border>
-          <el-descriptions-item label="活动名称">{{ currentActivity.activityName }}</el-descriptions-item>
-          <el-descriptions-item label="活动类型">{{ getActivityTypeText(currentActivity.activityType) }}</el-descriptions-item>
-          <el-descriptions-item label="活动时间">{{ currentActivity.startTime }}</el-descriptions-item>
-          <el-descriptions-item label="活动地点">{{ currentActivity.location }}</el-descriptions-item>
+          <el-descriptions-item label="活动名称">{{ currentActivity?.activityName || '-' }}</el-descriptions-item>
+          <el-descriptions-item label="活动类型">{{ getActivityTypeText(currentActivity?.activityType) }}</el-descriptions-item>
+          <el-descriptions-item label="活动时间">{{ currentActivity?.startTime || '-' }}</el-descriptions-item>
+          <el-descriptions-item label="活动地点">{{ currentActivity?.location || '-' }}</el-descriptions-item>
         </el-descriptions>
         <el-form label-width="100px" style="margin-top:20px">
           <el-form-item label="老人姓名">
@@ -100,7 +102,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { getAllActivities, signupActivity, getActivitySignupsByElderlyId } from '../api'
 import { useUserStore } from '../stores/user'
@@ -109,6 +111,7 @@ import { Calendar, Location, User, UserFilled } from '@element-plus/icons-vue'
 
 const router = useRouter()
 const userStore = useUserStore()
+const isMounted = ref(false)
 const loading = ref(false)
 const activities = ref([])
 const signups = ref([])
@@ -150,11 +153,14 @@ const loadActivities = async () => {
   loading.value = true
   try {
     const res = await getAllActivities()
-    activities.value = res.data || []
+    if (!isMounted.value) return
+    activities.value = (res.data || []).filter(Boolean)
   } catch (e) {
     console.error('获取活动列表失败', e)
   } finally {
-    loading.value = false
+    if (isMounted.value) {
+      loading.value = false
+    }
   }
 }
 
@@ -162,6 +168,7 @@ const loadSignups = async () => {
   if (!userStore.isLogin) return
   try {
     const res = await getActivitySignupsByElderlyId(userStore.userInfo?.id)
+    if (!isMounted.value) return
     signups.value = res.data || []
   } catch (e) {
     console.error('获取报名记录失败', e)
@@ -187,16 +194,25 @@ const submitSignup = async () => {
     ElMessage.warning('请输入老人姓名')
     return
   }
+  if (!currentActivity.value?.id) {
+    ElMessage.error('活动信息异常')
+    return
+  }
   signupLoading.value = true
   try {
     await signupActivity(currentActivity.value.id, userStore.userInfo?.id, signupForm.value.elderlyName)
+    if (!isMounted.value) return
     ElMessage.success('报名成功，等待审核')
     signupDialogVisible.value = false
     loadSignups()
   } catch (e) {
-    ElMessage.error(e.response?.data?.message || '报名失败')
+    if (isMounted.value) {
+      ElMessage.error(e.response?.data?.message || '报名失败')
+    }
   } finally {
-    signupLoading.value = false
+    if (isMounted.value) {
+      signupLoading.value = false
+    }
   }
 }
 
@@ -213,8 +229,13 @@ const handleSignIn = (activity) => {
 }
 
 onMounted(() => {
+  isMounted.value = true
   loadActivities()
   loadSignups()
+})
+
+onUnmounted(() => {
+  isMounted.value = false
 })
 </script>
 

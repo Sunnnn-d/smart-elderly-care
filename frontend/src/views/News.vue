@@ -52,10 +52,11 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import { getNotices } from '../api'
 import { getNoticeTypeName, getNoticeTypeTag } from '../utils'
 
+const isMounted = ref(false)
 const notices = ref([])
 const pageNum = ref(1)
 const pageSize = ref(10)
@@ -71,18 +72,30 @@ const loadNotices = async () => {
       pageSize: pageSize.value,
       type: currentType.value
     })
+    if (!isMounted.value) return
     notices.value = res.data?.records || []
     total.value = res.data?.total || 0
   } catch (e) {
     console.error('加载资讯失败', e)
-    notices.value = []
-    total.value = 0
+    if (isMounted.value) {
+      notices.value = []
+      total.value = 0
+    }
   } finally {
-    loading.value = false
+    if (isMounted.value) {
+      loading.value = false
+    }
   }
 }
 
-onMounted(() => loadNotices())
+onMounted(() => {
+  isMounted.value = true
+  loadNotices()
+})
+
+onUnmounted(() => {
+  isMounted.value = false
+})
 </script>
 
 <style lang="scss" scoped>

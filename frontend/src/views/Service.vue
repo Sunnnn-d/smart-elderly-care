@@ -85,7 +85,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { getServiceItems, createAppointment } from '../api'
 import { useUserStore } from '../stores/user'
@@ -95,6 +95,7 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 const route = useRoute()
 const router = useRouter()
 const userStore = useUserStore()
+const isMounted = ref(false)
 const allServices = ref([])
 const currentCategory = ref('')
 const dialogVisible = ref(false)
@@ -172,10 +173,11 @@ const submitAppointment = async () => {
 }
 
 onMounted(async () => {
+  isMounted.value = true
   try {
     const res = await getServiceItems()
+    if (!isMounted.value) return
     allServices.value = res.data || []
-    // 如果URL有指定服务ID
     if (route.query.id) {
       const target = allServices.value.find(s => s.id === Number(route.query.id))
       if (target) openAppointment(target)
@@ -183,6 +185,10 @@ onMounted(async () => {
   } catch (e) {
     console.error(e)
   }
+})
+
+onUnmounted(() => {
+  isMounted.value = false
 })
 </script>
 

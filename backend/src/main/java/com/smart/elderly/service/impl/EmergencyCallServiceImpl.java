@@ -23,15 +23,15 @@ public class EmergencyCallServiceImpl extends ServiceImpl<EmergencyCallMapper, E
 
     @Override
     public Result<PageResult<EmergencyCall>> pageList(Map<String, Object> params) {
-        Integer pageNum = params.get("pageNum") != null ? (Integer) params.get("pageNum") : 1;
-        Integer pageSize = params.get("pageSize") != null ? (Integer) params.get("pageSize") : 10;
+        Integer pageNum = params.get("pageNum") != null ? Integer.parseInt(String.valueOf(params.get("pageNum"))) : 1;
+        Integer pageSize = params.get("pageSize") != null ? Integer.parseInt(String.valueOf(params.get("pageSize"))) : 10;
         
         LambdaQueryWrapper<EmergencyCall> wrapper = new LambdaQueryWrapper<>();
         if (params.containsKey("elderlyId")) {
-            wrapper.eq(EmergencyCall::getElderlyId, params.get("elderlyId"));
+            wrapper.eq(EmergencyCall::getElderlyId, Long.parseLong(String.valueOf(params.get("elderlyId"))));
         }
         if (params.containsKey("status")) {
-            wrapper.eq(EmergencyCall::getStatus, params.get("status"));
+            wrapper.eq(EmergencyCall::getStatus, Integer.parseInt(String.valueOf(params.get("status"))));
         }
         if (params.containsKey("callType") && StringUtils.hasText((String) params.get("callType"))) {
             wrapper.eq(EmergencyCall::getCallType, params.get("callType"));

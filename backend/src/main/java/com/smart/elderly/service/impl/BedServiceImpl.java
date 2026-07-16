@@ -23,21 +23,21 @@ public class BedServiceImpl extends ServiceImpl<BedMapper, Bed> implements BedSe
 
     @Override
     public Result<PageResult<Bed>> pageList(Map<String, Object> params) {
-        Integer pageNum = params.get("pageNum") != null ? (Integer) params.get("pageNum") : 1;
-        Integer pageSize = params.get("pageSize") != null ? (Integer) params.get("pageSize") : 10;
+        Integer pageNum = params.get("pageNum") != null ? Integer.parseInt(String.valueOf(params.get("pageNum"))) : 1;
+        Integer pageSize = params.get("pageSize") != null ? Integer.parseInt(String.valueOf(params.get("pageSize"))) : 10;
         
         LambdaQueryWrapper<Bed> wrapper = new LambdaQueryWrapper<>();
         if (params.containsKey("roomId")) {
-            wrapper.eq(Bed::getRoomId, params.get("roomId"));
+            wrapper.eq(Bed::getRoomId, Long.parseLong(String.valueOf(params.get("roomId"))));
         }
         if (params.containsKey("roomNumber") && StringUtils.hasText((String) params.get("roomNumber"))) {
             wrapper.like(Bed::getRoomNumber, params.get("roomNumber"));
         }
         if (params.containsKey("status")) {
-            wrapper.eq(Bed::getStatus, params.get("status"));
+            wrapper.eq(Bed::getStatus, Integer.parseInt(String.valueOf(params.get("status"))));
         }
         if (params.containsKey("elderlyId")) {
-            wrapper.eq(Bed::getElderlyId, params.get("elderlyId"));
+            wrapper.eq(Bed::getElderlyId, Long.parseLong(String.valueOf(params.get("elderlyId"))));
         }
         if (params.containsKey("elderlyName") && StringUtils.hasText((String) params.get("elderlyName"))) {
             wrapper.like(Bed::getElderlyName, params.get("elderlyName"));

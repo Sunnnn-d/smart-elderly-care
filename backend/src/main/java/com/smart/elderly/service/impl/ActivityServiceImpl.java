@@ -22,8 +22,8 @@ public class ActivityServiceImpl extends ServiceImpl<ActivityMapper, Activity> i
 
     @Override
     public Result<PageResult<Activity>> pageList(Map<String, Object> params) {
-        Integer pageNum = params.get("pageNum") != null ? (Integer) params.get("pageNum") : 1;
-        Integer pageSize = params.get("pageSize") != null ? (Integer) params.get("pageSize") : 10;
+        Integer pageNum = params.get("pageNum") != null ? Integer.parseInt(String.valueOf(params.get("pageNum"))) : 1;
+        Integer pageSize = params.get("pageSize") != null ? Integer.parseInt(String.valueOf(params.get("pageSize"))) : 10;
         
         LambdaQueryWrapper<Activity> wrapper = new LambdaQueryWrapper<>();
         if (params.containsKey("activityName") && StringUtils.hasText((String) params.get("activityName"))) {
@@ -33,7 +33,7 @@ public class ActivityServiceImpl extends ServiceImpl<ActivityMapper, Activity> i
             wrapper.eq(Activity::getActivityType, params.get("activityType"));
         }
         if (params.containsKey("status")) {
-            wrapper.eq(Activity::getStatus, params.get("status"));
+            wrapper.eq(Activity::getStatus, Integer.parseInt(String.valueOf(params.get("status"))));
         }
         wrapper.orderByDesc(Activity::getCreateTime);
 

@@ -13,19 +13,45 @@
           class="nav-menu"
           @select="handleMenuSelect"
         >
-          <el-menu-item index="/">首页</el-menu-item>
-          <el-menu-item index="/service" @click="checkLogin('/service')">服务预约</el-menu-item>
-          <el-menu-item index="/news">健康资讯</el-menu-item>
-          <el-menu-item index="/about">关于我们</el-menu-item>
+          <el-menu-item index="/">
+            <el-icon><HomeFilled /></el-icon>
+            首页
+          </el-menu-item>
+          <el-menu-item index="/service" @click="checkLogin('/service')">
+            <el-icon><Calendar /></el-icon>
+            服务预约
+          </el-menu-item>
+          <el-menu-item index="/news">
+            <el-icon><Document /></el-icon>
+            健康资讯
+          </el-menu-item>
+          <el-menu-item index="/about">
+            <el-icon><InfoFilled /></el-icon>
+            关于我们
+          </el-menu-item>
+          <el-menu-item v-if="userStore.isLogin" index="/orders">
+            <el-icon><ShoppingCart /></el-icon>
+            我的订单
+          </el-menu-item>
+          <el-menu-item v-if="userStore.isLogin" index="/activities">
+            <el-icon><Trophy /></el-icon>
+            活动中心
+          </el-menu-item>
+          <el-menu-item v-if="userStore.isLogin" index="/medication">
+            <el-icon><FirstAidKit /></el-icon>
+            用药管理
+          </el-menu-item>
+          <el-menu-item v-if="userStore.isLogin" index="/bills">
+            <el-icon><Wallet /></el-icon>
+            费用账单
+          </el-menu-item>
+          <el-menu-item v-if="userStore.isLogin" index="/message">
+            <el-icon><Bell /></el-icon>
+            消息中心
+            <el-badge :value="messageStore.appUnreadCount" :hidden="messageStore.appUnreadCount === 0" class="message-badge" />
+          </el-menu-item>
         </el-menu>
         <div class="header-right">
-          <!-- 消息中心 -->
-          <div v-if="userStore.isLogin" class="message-btn" @click="openMessageCenter">
-            <el-badge :value="messageStore.appUnreadCount" :hidden="messageStore.appUnreadCount === 0">
-              <el-button icon="Bell" circle />
-            </el-badge>
-          </div>
-          
           <div v-if="!userStore.isLogin" class="login-btn">
             <el-button type="primary" round @click="goLogin">
               <el-icon><User /></el-icon>
@@ -42,10 +68,6 @@
             </div>
             <template #dropdown>
               <el-dropdown-menu>
-                <el-dropdown-item @click="goOrders">
-                  <el-icon><ShoppingCart /></el-icon>
-                  我的订单
-                </el-dropdown-item>
                 <el-dropdown-item @click="openUsernameDialog">
                   <el-icon><Edit /></el-icon>
                   修改用户名
@@ -59,7 +81,7 @@
                   修改密码
                 </el-dropdown-item>
                 <el-dropdown-item divided @click="handleLogout">
-                  <el-icon><LogOut /></el-icon>
+                  <el-icon><Back /></el-icon>
                   退出登录
                 </el-dropdown-item>
               </el-dropdown-menu>
@@ -163,18 +185,19 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useUserStore } from './stores/user'
 import { useMessageStore } from './stores/message'
 import { getAppUserInfo, uploadAppUserAvatar, changeAppUserPassword, changeAppUsername, uploadAppAvatar, changeAppPassword } from './api'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { ShoppingCart } from '@element-plus/icons-vue'
+import { ShoppingCart, Trophy, FirstAidKit, Wallet, Bell, Edit, Lock, Back, HomeFilled, Calendar, Document, InfoFilled } from '@element-plus/icons-vue'
 
 const router = useRouter()
 const route = useRoute()
 const userStore = useUserStore()
 const messageStore = useMessageStore()
+const isMounted = ref(false)
 
 const openMessageCenter = () => {
   router.push('/message')
@@ -184,11 +207,28 @@ const goOrders = () => {
   router.push('/orders')
 }
 
+const goActivities = () => {
+  router.push('/activities')
+}
+
+const goMedication = () => {
+  router.push('/medication')
+}
+
+const goBills = () => {
+  router.push('/bills')
+}
+
 const activeMenu = computed(() => {
   const path = route.path
   if (path.startsWith('/service')) return '/service'
   if (path.startsWith('/news')) return '/news'
   if (path.startsWith('/about')) return '/about'
+  if (path.startsWith('/orders')) return '/orders'
+  if (path.startsWith('/activities')) return '/activities'
+  if (path.startsWith('/medication')) return '/medication'
+  if (path.startsWith('/bills')) return '/bills'
+  if (path.startsWith('/message')) return '/message'
   return '/'
 })
 
@@ -287,13 +327,16 @@ const saveUsername = async () => {
   usernameLoading.value = true
   try {
     await changeAppUsername({ username: usernameForm.newUsername })
+    if (!isMounted.value) return
     userStore.updateUserInfo({ username: usernameForm.newUsername })
     ElMessage.success('用户名修改成功')
     usernameDialogVisible.value = false
   } catch (e) {
     ElMessage.error(e.response?.data?.message || '用户名修改失败')
   } finally {
-    usernameLoading.value = false
+    if (isMounted.value) {
+      usernameLoading.value = false
+    }
   }
 }
 
@@ -338,6 +381,7 @@ const saveAvatar = async () => {
     const formData = new FormData()
     formData.append('file', avatarForm.file)
     const res = await uploadAppUserAvatar(userStore.userInfo.id, formData)
+    if (!isMounted.value) return
     if (res.data) {
       userStore.updateUserInfo({ avatar: res.data.avatar })
       ElMessage.success('头像修改成功')
@@ -346,7 +390,9 @@ const saveAvatar = async () => {
   } catch (e) {
     ElMessage.error('头像修改失败')
   } finally {
-    avatarLoading.value = false
+    if (isMounted.value) {
+      avatarLoading.value = false
+    }
   }
 }
 
@@ -358,12 +404,15 @@ const savePassword = async () => {
       oldPassword: passwordForm.oldPassword,
       newPassword: passwordForm.newPassword
     })
+    if (!isMounted.value) return
     ElMessage.success('密码修改成功')
     passwordDialogVisible.value = false
   } catch (e) {
     ElMessage.error(e.response?.data?.message || '密码修改失败')
   } finally {
-    passwordLoading.value = false
+    if (isMounted.value) {
+      passwordLoading.value = false
+    }
   }
 }
 
@@ -387,19 +436,27 @@ const loadUserInfo = async () => {
   if (userStore.token && !userStore.userInfo) {
     try {
       const res = await getAppUserInfo()
+      if (!isMounted.value) return
       userStore.updateUserInfo(res.data)
     } catch (e) {
       console.error('获取用户信息失败', e)
-      userStore.logout()
+      if (isMounted.value) {
+        userStore.logout()
+      }
     }
   }
 }
 
 onMounted(() => {
+  isMounted.value = true
   loadUserInfo()
   if (userStore.token) {
     messageStore.fetchAppUnreadCount()
   }
+})
+
+onUnmounted(() => {
+  isMounted.value = false
 })
 </script>
 
@@ -441,7 +498,7 @@ onMounted(() => {
   border-bottom: none !important;
   .el-menu-item {
     font-size: 1.05rem;
-    padding: 0 24px;
+    padding: 0 20px;
     height: 72px;
     line-height: 72px;
     &.is-active {
@@ -451,6 +508,9 @@ onMounted(() => {
     &:hover {
       color: #FF8C00 !important;
       background: #FFF8F0 !important;
+    }
+    .message-badge {
+      margin-left: 4px;
     }
   }
 }

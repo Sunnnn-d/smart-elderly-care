@@ -22,8 +22,8 @@ public class RoomServiceImpl extends ServiceImpl<RoomMapper, Room> implements Ro
 
     @Override
     public Result<PageResult<Room>> pageList(Map<String, Object> params) {
-        Integer pageNum = params.get("pageNum") != null ? (Integer) params.get("pageNum") : 1;
-        Integer pageSize = params.get("pageSize") != null ? (Integer) params.get("pageSize") : 10;
+        Integer pageNum = params.get("pageNum") != null ? Integer.parseInt(String.valueOf(params.get("pageNum"))) : 1;
+        Integer pageSize = params.get("pageSize") != null ? Integer.parseInt(String.valueOf(params.get("pageSize"))) : 10;
         
         LambdaQueryWrapper<Room> wrapper = new LambdaQueryWrapper<>();
         if (params.containsKey("roomNumber") && StringUtils.hasText((String) params.get("roomNumber"))) {
@@ -33,10 +33,10 @@ public class RoomServiceImpl extends ServiceImpl<RoomMapper, Room> implements Ro
             wrapper.eq(Room::getRoomType, params.get("roomType"));
         }
         if (params.containsKey("status")) {
-            wrapper.eq(Room::getStatus, params.get("status"));
+            wrapper.eq(Room::getStatus, Integer.parseInt(String.valueOf(params.get("status"))));
         }
         if (params.containsKey("floor")) {
-            wrapper.eq(Room::getFloor, params.get("floor"));
+            wrapper.eq(Room::getFloor, Integer.parseInt(String.valueOf(params.get("floor"))));
         }
         wrapper.orderByDesc(Room::getCreateTime);
 

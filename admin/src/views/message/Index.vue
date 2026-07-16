@@ -66,7 +66,7 @@
     />
 
     <!-- 发送消息弹窗 -->
-    <el-dialog title="发送消息" :visible.sync="sendModalVisible" width="500px" @close="resetSendForm">
+    <el-dialog title="发送消息" v-model="sendModalVisible" width="500px" @close="resetSendForm">
       <el-form ref="sendFormRef" :model="sendForm" :rules="sendRules" label-width="100px">
         <el-form-item label="发送类型" prop="sendType">
           <el-radio-group v-model="sendForm.sendType">
@@ -90,7 +90,7 @@
         </el-form-item>
 
         <el-form-item label="消息内容" prop="content">
-          <el-textarea v-model="sendForm.content" placeholder="请输入消息内容" :rows="4" />
+          <el-input v-model="sendForm.content" type="textarea" placeholder="请输入消息内容" :rows="4" />
         </el-form-item>
       </el-form>
 
@@ -103,9 +103,9 @@
 </template>
 
 <script setup>import { ref, computed, onMounted, reactive } from 'vue';
-import { getAdminMessages, markAdminMessageRead, markAllAdminMessagesRead, deleteAdminMessage, sendMessageToUser, sendSystemMessage, getMessageTypes } from '../../api';
+import { getAdminMessages, getAdminUnreadCount, markAdminMessageRead, markAllAdminMessagesRead, deleteAdminMessage, sendMessageToUser, sendSystemMessage, getMessageTypes } from '../../api';
 import { ElMessage } from 'element-plus';
-import { Finished, ShoppingCart, Bell, InfoFilledFilled, ChatLineRound } from '@element-plus/icons-vue';
+import { Finished, ShoppingCart, Bell, InfoFilled, ChatLineRound } from '@element-plus/icons-vue';
 const activeTab = ref('all');
 const pageNum = ref(1);
 const pageSize = ref(20);

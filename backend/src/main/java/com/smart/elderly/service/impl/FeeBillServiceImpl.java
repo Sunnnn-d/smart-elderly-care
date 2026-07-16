@@ -22,18 +22,18 @@ public class FeeBillServiceImpl extends ServiceImpl<FeeBillMapper, FeeBill> impl
 
     @Override
     public Result<PageResult<FeeBill>> pageList(Map<String, Object> params) {
-        Integer pageNum = params.get("pageNum") != null ? (Integer) params.get("pageNum") : 1;
-        Integer pageSize = params.get("pageSize") != null ? (Integer) params.get("pageSize") : 10;
+        Integer pageNum = params.get("pageNum") != null ? Integer.parseInt(String.valueOf(params.get("pageNum"))) : 1;
+        Integer pageSize = params.get("pageSize") != null ? Integer.parseInt(String.valueOf(params.get("pageSize"))) : 10;
         
         LambdaQueryWrapper<FeeBill> wrapper = new LambdaQueryWrapper<>();
         if (params.containsKey("elderlyId")) {
-            wrapper.eq(FeeBill::getElderlyId, params.get("elderlyId"));
+            wrapper.eq(FeeBill::getElderlyId, Long.parseLong(String.valueOf(params.get("elderlyId"))));
         }
         if (params.containsKey("elderlyName") && StringUtils.hasText((String) params.get("elderlyName"))) {
             wrapper.like(FeeBill::getElderlyName, params.get("elderlyName"));
         }
         if (params.containsKey("status")) {
-            wrapper.eq(FeeBill::getStatus, params.get("status"));
+            wrapper.eq(FeeBill::getStatus, Integer.parseInt(String.valueOf(params.get("status"))));
         }
         if (params.containsKey("billMonth") && StringUtils.hasText((String) params.get("billMonth"))) {
             wrapper.eq(FeeBill::getBillMonth, params.get("billMonth"));

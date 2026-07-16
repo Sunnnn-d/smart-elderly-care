@@ -5,8 +5,9 @@
     </div>
 
     <div class="bills-container" v-loading="loading">
-      <el-empty v-if="bills.length === 0" description="暂无账单" />
-      <div v-for="bill in bills" :key="bill.id" class="bill-card">
+      <template>
+        <el-empty v-if="bills.length === 0" description="暂无账单" />
+        <div v-for="bill in bills" :key="bill.id" class="bill-card">
         <div class="bill-header">
           <div class="bill-no">账单编号：{{ bill.billNo }}</div>
           <el-tag :type="getBillStatusTag(bill.status)">{{ getBillStatusText(bill.status) }}</el-tag>
@@ -54,6 +55,7 @@
           >已结清</el-button>
         </div>
       </div>
+      </template>
     </div>
 
     <el-pagination
@@ -107,7 +109,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { getFeeBillsByElderlyId, createPayment } from '../api'
 import { useUserStore } from '../stores/user'
@@ -116,6 +118,7 @@ import { Calendar, Clock, InfoFilled, ChatDotRound, Wallet } from '@element-plus
 
 const router = useRouter()
 const userStore = useUserStore()
+const isMounted = ref(false)
 const loading = ref(false)
 const pageNum = ref(1)
 const pageSize = ref(10)
@@ -148,13 +151,16 @@ const loadBills = async () => {
   loading.value = true
   try {
     const res = await getFeeBillsByElderlyId(userStore.userInfo?.id)
+    if (!isMounted.value) return
     bills.value = res.data || []
     total.value = bills.value.length
   } catch (e) {
     console.error('获取账单列表失败', e)
     ElMessage.error('获取账单列表失败')
   } finally {
-    loading.value = false
+    if (isMounted.value) {
+      loading.value = false
+    }
   }
 }
 
@@ -207,7 +213,14 @@ const submitPay = async () => {
   }
 }
 
-onMounted(() => loadBills())
+onMounted(() => {
+  isMounted.value = true
+  loadBills()
+})
+
+onUnmounted(() => {
+  isMounted.value = false
+})
 </script>
 
 <style lang="scss" scoped>

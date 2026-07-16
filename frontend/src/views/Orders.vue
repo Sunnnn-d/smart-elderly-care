@@ -80,7 +80,7 @@
     />
 
     <!-- 订单详情弹窗 -->
-    <el-dialog title="订单详情" :visible.sync="detailVisible" width="500px">
+    <el-dialog title="订单详情" v-model="detailVisible" width="500px">
       <el-descriptions :column="2" border v-if="currentOrder">
         <el-descriptions-item label="订单编号">{{ currentOrder.orderNo }}</el-descriptions-item>
         <el-descriptions-item label="订单状态">
@@ -105,15 +105,16 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { getAppUserOrders, userCancelOrder } from '../api'
 import { useUserStore } from '../stores/user'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { ShoppingCart, User, Phone, Calendar, Location, UserFilled, WarningFilledFilled } from '@element-plus/icons-vue'
+import { ShoppingCart, User, Phone, Calendar, Location, UserFilled, WarningFilled } from '@element-plus/icons-vue'
 
 const router = useRouter()
 const userStore = useUserStore()
+const isMounted = ref(false)
 const loading = ref(false)
 const pageNum = ref(1)
 const pageSize = ref(10)
@@ -136,13 +137,16 @@ const loadOrders = async () => {
   loading.value = true
   try {
     const res = await getAppUserOrders({ pageNum: pageNum.value, pageSize: pageSize.value })
+    if (!isMounted.value) return
     orders.value = res.data?.records || []
     total.value = res.data?.total || 0
   } catch (e) {
     console.error('获取订单列表失败', e)
     ElMessage.error('获取订单列表失败')
   } finally {
-    loading.value = false
+    if (isMounted.value) {
+      loading.value = false
+    }
   }
 }
 
@@ -191,7 +195,12 @@ const getCancelTypeText = (cancelType) => {
 }
 
 onMounted(() => {
+  isMounted.value = true
   loadOrders()
+})
+
+onUnmounted(() => {
+  isMounted.value = false
 })
 </script>
 

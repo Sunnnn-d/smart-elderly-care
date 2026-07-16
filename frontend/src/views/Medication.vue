@@ -9,8 +9,9 @@
         <template #header>
           <span style="font-weight:600">用药计划</span>
         </template>
-        <el-empty v-if="plans.length === 0" description="暂无用药计划" />
-        <div v-for="plan in plans" :key="plan.id" class="plan-item">
+        <template>
+          <el-empty v-if="plans.length === 0" description="暂无用药计划" />
+          <div v-for="plan in plans" :key="plan.id" class="plan-item">
           <div class="plan-header">
             <div class="medicine-name">{{ plan.medicineName }}</div>
             <el-tag :type="plan.status === 1 ? 'success' : 'info'">{{ plan.status === 1 ? '执行中' : '已停用' }}</el-tag>
@@ -42,13 +43,15 @@
             <span>{{ plan.remark }}</span>
           </div>
         </div>
+        </template>
       </el-card>
 
       <el-card class="record-card" style="margin-top:24px">
         <template #header>
           <span style="font-weight:600">用药记录</span>
         </template>
-        <el-empty v-if="records.length === 0" description="暂无用药记录" />
+        <template>
+          <el-empty v-if="records.length === 0" description="暂无用药记录" />
         <el-table :data="records" stripe size="small">
           <el-table-column prop="medicineName" label="药品名称" width="150" />
           <el-table-column prop="dosage" label="服用剂量" width="100" />
@@ -65,13 +68,14 @@
           </el-table-column>
           <el-table-column prop="remark" label="备注" show-overflow-tooltip />
         </el-table>
+        </template>
       </el-card>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { getMedicationPlansByElderlyId, getMedicationRecordsByElderlyId } from '../api'
 import { useUserStore } from '../stores/user'
@@ -80,6 +84,7 @@ import { FirstAidKit, Clock, Calendar, UserFilled, Medal, InfoFilled } from '@el
 
 const router = useRouter()
 const userStore = useUserStore()
+const isMounted = ref(false)
 const loading = ref(false)
 const plans = ref([])
 const records = ref([])
@@ -95,17 +100,27 @@ const loadData = async () => {
       getMedicationPlansByElderlyId(userStore.userInfo?.id),
       getMedicationRecordsByElderlyId(userStore.userInfo?.id)
     ])
+    if (!isMounted.value) return
     plans.value = plansRes.data || []
     records.value = recordsRes.data || []
   } catch (e) {
     console.error('获取用药数据失败', e)
     ElMessage.error('获取用药数据失败')
   } finally {
-    loading.value = false
+    if (isMounted.value) {
+      loading.value = false
+    }
   }
 }
 
-onMounted(() => loadData())
+onMounted(() => {
+  isMounted.value = true
+  loadData()
+})
+
+onUnmounted(() => {
+  isMounted.value = false
+})
 </script>
 
 <style lang="scss" scoped>

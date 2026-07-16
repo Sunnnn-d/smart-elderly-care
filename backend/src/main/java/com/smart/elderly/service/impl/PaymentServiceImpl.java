@@ -30,21 +30,21 @@ public class PaymentServiceImpl extends ServiceImpl<PaymentMapper, Payment> impl
 
     @Override
     public Result<PageResult<Payment>> pageList(Map<String, Object> params) {
-        Integer pageNum = params.get("pageNum") != null ? (Integer) params.get("pageNum") : 1;
-        Integer pageSize = params.get("pageSize") != null ? (Integer) params.get("pageSize") : 10;
+        Integer pageNum = params.get("pageNum") != null ? Integer.parseInt(String.valueOf(params.get("pageNum"))) : 1;
+        Integer pageSize = params.get("pageSize") != null ? Integer.parseInt(String.valueOf(params.get("pageSize"))) : 10;
         
         LambdaQueryWrapper<Payment> wrapper = new LambdaQueryWrapper<>();
         if (params.containsKey("elderlyId")) {
-            wrapper.eq(Payment::getElderlyId, params.get("elderlyId"));
+            wrapper.eq(Payment::getElderlyId, Long.parseLong(String.valueOf(params.get("elderlyId"))));
         }
         if (params.containsKey("elderlyName") && StringUtils.hasText((String) params.get("elderlyName"))) {
             wrapper.like(Payment::getElderlyName, params.get("elderlyName"));
         }
         if (params.containsKey("billId")) {
-            wrapper.eq(Payment::getBillId, params.get("billId"));
+            wrapper.eq(Payment::getBillId, Long.parseLong(String.valueOf(params.get("billId"))));
         }
         if (params.containsKey("status")) {
-            wrapper.eq(Payment::getStatus, params.get("status"));
+            wrapper.eq(Payment::getStatus, Integer.parseInt(String.valueOf(params.get("status"))));
         }
         if (params.containsKey("payMethod") && StringUtils.hasText((String) params.get("payMethod"))) {
             wrapper.eq(Payment::getPayMethod, params.get("payMethod"));

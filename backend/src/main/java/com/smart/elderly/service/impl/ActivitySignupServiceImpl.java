@@ -26,18 +26,18 @@ public class ActivitySignupServiceImpl extends ServiceImpl<ActivitySignupMapper,
 
     @Override
     public Result<PageResult<ActivitySignup>> pageList(Map<String, Object> params) {
-        Integer pageNum = params.get("pageNum") != null ? (Integer) params.get("pageNum") : 1;
-        Integer pageSize = params.get("pageSize") != null ? (Integer) params.get("pageSize") : 10;
+        Integer pageNum = params.get("pageNum") != null ? Integer.parseInt(String.valueOf(params.get("pageNum"))) : 1;
+        Integer pageSize = params.get("pageSize") != null ? Integer.parseInt(String.valueOf(params.get("pageSize"))) : 10;
         
         LambdaQueryWrapper<ActivitySignup> wrapper = new LambdaQueryWrapper<>();
         if (params.containsKey("activityId")) {
-            wrapper.eq(ActivitySignup::getActivityId, params.get("activityId"));
+            wrapper.eq(ActivitySignup::getActivityId, Long.parseLong(String.valueOf(params.get("activityId"))));
         }
         if (params.containsKey("elderlyId")) {
-            wrapper.eq(ActivitySignup::getElderlyId, params.get("elderlyId"));
+            wrapper.eq(ActivitySignup::getElderlyId, Long.parseLong(String.valueOf(params.get("elderlyId"))));
         }
         if (params.containsKey("status")) {
-            wrapper.eq(ActivitySignup::getStatus, params.get("status"));
+            wrapper.eq(ActivitySignup::getStatus, Integer.parseInt(String.valueOf(params.get("status"))));
         }
         wrapper.orderByDesc(ActivitySignup::getSignupTime);
 

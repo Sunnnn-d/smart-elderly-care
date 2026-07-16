@@ -5,9 +5,9 @@
         <div style="display:flex;justify-content:space-between;align-items:center">
           <span style="font-size:1.1rem;font-weight:600">用药计划管理</span>
           <div style="display:flex;gap:12px">
-            <el-input v-model="query.elderlyName" placeholder="老人姓名" clearable style="width:150px" @clear="loadPlanData" @keyup.enter="loadPlanData" />
-            <el-input v-model="query.medicineName" placeholder="药品名称" clearable style="width:150px" @clear="loadPlanData" @keyup.enter="loadPlanData" />
-            <el-select v-model="query.status" placeholder="状态" clearable style="width:120px" @change="loadPlanData">
+            <el-input v-model="planQuery.elderlyName" placeholder="老人姓名" clearable style="width:150px" @clear="loadPlanData" @keyup.enter="loadPlanData" />
+            <el-input v-model="planQuery.medicineName" placeholder="药品名称" clearable style="width:150px" @clear="loadPlanData" @keyup.enter="loadPlanData" />
+            <el-select v-model="planQuery.status" placeholder="状态" clearable style="width:120px" @change="loadPlanData">
               <el-option label="执行中" :value="1" />
               <el-option label="已停用" :value="0" />
             </el-select>
@@ -184,7 +184,7 @@
           <el-input v-model="recordForm.dosage" placeholder="请输入服用剂量" />
         </el-form-item>
         <el-form-item label="服用时间">
-          <el-datetime-picker v-model="recordForm.takeTime" type="datetime" style="width:100%" />
+          <el-date-picker v-model="recordForm.takeTime" type="datetime" style="width:100%" />
         </el-form-item>
         <el-form-item label="状态">
           <el-select v-model="recordForm.status" style="width:100%">

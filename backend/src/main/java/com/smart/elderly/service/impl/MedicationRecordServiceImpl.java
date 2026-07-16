@@ -22,18 +22,18 @@ public class MedicationRecordServiceImpl extends ServiceImpl<MedicationRecordMap
 
     @Override
     public Result<PageResult<MedicationRecord>> pageList(Map<String, Object> params) {
-        Integer pageNum = params.get("pageNum") != null ? (Integer) params.get("pageNum") : 1;
-        Integer pageSize = params.get("pageSize") != null ? (Integer) params.get("pageSize") : 10;
+        Integer pageNum = params.get("pageNum") != null ? Integer.parseInt(String.valueOf(params.get("pageNum"))) : 1;
+        Integer pageSize = params.get("pageSize") != null ? Integer.parseInt(String.valueOf(params.get("pageSize"))) : 10;
         
         LambdaQueryWrapper<MedicationRecord> wrapper = new LambdaQueryWrapper<>();
         if (params.containsKey("elderlyId")) {
-            wrapper.eq(MedicationRecord::getElderlyId, params.get("elderlyId"));
+            wrapper.eq(MedicationRecord::getElderlyId, Long.parseLong(String.valueOf(params.get("elderlyId"))));
         }
         if (params.containsKey("planId")) {
-            wrapper.eq(MedicationRecord::getPlanId, params.get("planId"));
+            wrapper.eq(MedicationRecord::getPlanId, Long.parseLong(String.valueOf(params.get("planId"))));
         }
         if (params.containsKey("status")) {
-            wrapper.eq(MedicationRecord::getStatus, params.get("status"));
+            wrapper.eq(MedicationRecord::getStatus, Integer.parseInt(String.valueOf(params.get("status"))));
         }
         if (params.containsKey("medicineName") && StringUtils.hasText((String) params.get("medicineName"))) {
             wrapper.like(MedicationRecord::getMedicineName, params.get("medicineName"));

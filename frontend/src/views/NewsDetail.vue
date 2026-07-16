@@ -25,11 +25,12 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { getNoticeDetail } from '../api'
 
 const route = useRoute()
+const isMounted = ref(false)
 const notice = ref(null)
 const loading = ref(true)
 
@@ -44,14 +45,22 @@ const getTypeTag = (type) => {
 }
 
 onMounted(async () => {
+  isMounted.value = true
   try {
     const res = await getNoticeDetail(route.params.id)
+    if (!isMounted.value) return
     notice.value = res.data
   } catch (e) {
     console.error('加载资讯详情失败', e)
   } finally {
-    loading.value = false
+    if (isMounted.value) {
+      loading.value = false
+    }
   }
+})
+
+onUnmounted(() => {
+  isMounted.value = false
 })
 </script>
 

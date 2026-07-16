@@ -1,16 +1,16 @@
 // 服务类别图标映射
 export const serviceIconMap = {
-  '助餐': 'Bowl',
-  '保洁': 'Brush',
+  '助餐': 'ShoppingCart',
+  '保洁': 'Bell',
   '护理': 'FirstAidKit',
-  '康复': 'MagicStick',
-  '陪伴': 'ChatDotRound',
-  '其他': 'ShoppingCart'
+  '康复': 'Edit',
+  '陪伴': 'UserFilled',
+  '其他': 'Document'
 }
 
 // 获取服务图标
 export const getServiceIcon = (category) => {
-  return serviceIconMap[category] || 'Service'
+  return serviceIconMap[category] || 'Document'
 }
 
 // 资讯类型名称映射

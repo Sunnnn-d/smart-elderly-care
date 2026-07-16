@@ -62,7 +62,7 @@
 </template>
 
 <script setup>
-import { ref, reactive } from 'vue'
+import { ref, reactive, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '../stores/user'
 import { ElMessage } from 'element-plus'
@@ -70,6 +70,7 @@ import { appLogin, getAppUserInfo } from '../api'
 
 const router = useRouter()
 const userStore = useUserStore()
+const isMounted = ref(true)
 const formRef = ref()
 const loading = ref(false)
 
@@ -101,23 +102,33 @@ const handleLogin = async () => {
   loading.value = true
   try {
     const loginRes = await appLogin(form)
+    if (!isMounted.value) return
     const { token } = loginRes.data
     
     localStorage.setItem('token', token)
     
     const infoRes = await getAppUserInfo()
+    if (!isMounted.value) return
     userStore.login(token, infoRes.data)
     
     ElMessage.success('登录成功，欢迎回来')
     router.push('/')
   } catch (e) {
     console.error('登录失败', e)
-    const errorMsg = e.response?.data?.message || '登录失败，请检查用户名和密码'
-    ElMessage.error(errorMsg)
+    if (isMounted.value) {
+      const errorMsg = e.response?.data?.message || '登录失败，请检查用户名和密码'
+      ElMessage.error(errorMsg)
+    }
   } finally {
-    loading.value = false
+    if (isMounted.value) {
+      loading.value = false
+    }
   }
 }
+
+onUnmounted(() => {
+  isMounted.value = false
+})
 </script>
 
 <style lang="scss" scoped>

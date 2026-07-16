@@ -57,6 +57,34 @@
           <el-icon><User /></el-icon>
           <span>客户端用户</span>
         </el-menu-item>
+        <el-menu-item index="/message">
+          <el-icon><Message /></el-icon>
+          <span>消息管理</span>
+        </el-menu-item>
+        <el-menu-item index="/medication">
+          <el-icon><FirstAidKit /></el-icon>
+          <span>用药管理</span>
+        </el-menu-item>
+        <el-menu-item index="/emergency">
+          <el-icon><Phone /></el-icon>
+          <span>紧急呼叫</span>
+        </el-menu-item>
+        <el-menu-item index="/bed">
+          <el-icon><User /></el-icon>
+          <span>床位管理</span>
+        </el-menu-item>
+        <el-menu-item index="/fee">
+          <el-icon><Wallet /></el-icon>
+          <span>费用管理</span>
+        </el-menu-item>
+        <el-menu-item index="/payment">
+          <el-icon><CreditCard /></el-icon>
+          <span>支付管理</span>
+        </el-menu-item>
+        <el-menu-item index="/activity">
+          <el-icon><Trophy /></el-icon>
+          <span>活动管理</span>
+        </el-menu-item>
       </el-menu>
     </el-aside>
 

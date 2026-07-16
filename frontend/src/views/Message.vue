@@ -60,13 +60,15 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { getAppUserMessages, getAppUserUnreadCount, markAppUserMessageRead, markAllAppUserMessagesRead, deleteAppUserMessage } from '../api'
+import { cancelAllRequests } from '../api/request'
 import { ElMessage } from 'element-plus'
-import { Finished, ShoppingCart, Bell, InfoFilledFilled } from '@element-plus/icons-vue'
+import { Finished, ShoppingCart, Bell, InfoFilled } from '@element-plus/icons-vue'
 
 const router = useRouter()
+const isMounted = ref(false)
 const activeTab = ref('all')
 const pageNum = ref(1)
 const pageSize = ref(20)
@@ -93,6 +95,7 @@ const fetchMessages = async () => {
       getAppUserMessages({ pageNum: pageNum.value, pageSize: pageSize.value }),
       getAppUserUnreadCount()
     ])
+    if (!isMounted.value) return
     messages.value = msgRes.data?.records || []
     total.value = msgRes.data?.total || 0
     totalUnread.value = countRes.data || 0
@@ -101,7 +104,9 @@ const fetchMessages = async () => {
     console.error('获取消息列表失败', e)
     ElMessage.error('获取消息列表失败')
   } finally {
-    loading.value = false
+    if (isMounted.value) {
+      loading.value = false
+    }
   }
 }
 
@@ -121,6 +126,7 @@ const handlePageChange = (page) => {
 const markRead = async (messageId) => {
   try {
     await markAppUserMessageRead(messageId)
+    if (!isMounted.value) return
     const msg = messages.value.find(m => m.id === messageId)
     if (msg) msg.readFlag = 1
     if (totalUnread.value > 0) totalUnread.value--
@@ -134,6 +140,7 @@ const markAllRead = async () => {
   markAllLoading.value = true
   try {
     await markAllAppUserMessagesRead()
+    if (!isMounted.value) return
     messages.value.forEach(m => m.readFlag = 1)
     totalUnread.value = 0
     unreadCount.value = 0
@@ -141,13 +148,16 @@ const markAllRead = async () => {
   } catch (e) {
     ElMessage.error('标记失败')
   } finally {
-    markAllLoading.value = false
+    if (isMounted.value) {
+      markAllLoading.value = false
+    }
   }
 }
 
 const deleteMessage = async (messageId) => {
   try {
     await deleteAppUserMessage(messageId)
+    if (!isMounted.value) return
     messages.value = messages.value.filter(m => m.id !== messageId)
     total.value--
     ElMessage.success('删除成功')
@@ -175,7 +185,13 @@ const formatTime = (time) => {
 }
 
 onMounted(() => {
+  isMounted.value = true
   fetchMessages()
+})
+
+onUnmounted(() => {
+  isMounted.value = false
+  cancelAllRequests()
 })
 </script>
 

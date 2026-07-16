@@ -34,7 +34,7 @@
         <div class="service-grid">
           <div v-for="item in serviceItems" :key="item.id" class="service-card">
             <div class="service-icon">
-              <el-icon :size="48"><component :is="getServiceIcon(item.category)" /></el-icon>
+              <el-icon :size="48"><component :is="iconComponentMap[getServiceIcon(item.category)] || Circle" /></el-icon>
             </div>
             <h3>{{ item.name }}</h3>
             <p class="service-desc">{{ item.description }}</p>
@@ -108,15 +108,30 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { getBanners, getServiceItems, getNotices } from '../api'
 import { useUserStore } from '../stores/user'
 import { getServiceIcon } from '../utils'
+import { ShoppingCart, Trophy, FirstAidKit, Wallet, Bell, Edit, Document, Cellphone, UserFilled, Calendar } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 
 const router = useRouter()
 const userStore = useUserStore()
+const isMounted = ref(false)
+
+const iconComponentMap = {
+  ShoppingCart,
+  Trophy,
+  FirstAidKit,
+  Wallet,
+  Bell,
+  Edit,
+  Document,
+  Cellphone,
+  UserFilled,
+  Calendar
+}
 const banners = ref([])
 const serviceItems = ref([])
 const notices = ref([])
@@ -140,18 +155,24 @@ const goAppointment = (item) => {
 }
 
 onMounted(async () => {
+  isMounted.value = true
   try {
     const [bannerRes, serviceRes, noticeRes] = await Promise.all([
       getBanners().catch(() => ({ data: [] })),
       getServiceItems().catch(() => ({ data: [] })),
       getNotices({ pageNum: 1, pageSize: 4 }).catch(() => ({ data: { records: [] } }))
     ])
+    if (!isMounted.value) return
     banners.value = bannerRes.data || []
     serviceItems.value = serviceRes.data || []
     notices.value = noticeRes.data?.records || []
   } catch (e) {
     console.error('加载首页数据失败', e)
   }
+})
+
+onUnmounted(() => {
+  isMounted.value = false
 })
 </script>
 
