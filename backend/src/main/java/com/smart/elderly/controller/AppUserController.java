@@ -1,8 +1,8 @@
 package com.smart.elderly.controller;
 
 import com.smart.elderly.common.Result;
+import com.smart.elderly.dto.AppUserAddDTO;
 import com.smart.elderly.dto.ChangePasswordDTO;
-import com.smart.elderly.dto.UserAddDTO;
 import com.smart.elderly.dto.UserUpdateDTO;
 import com.smart.elderly.entity.AppUser;
 import com.smart.elderly.service.AppUserService;
@@ -93,7 +93,7 @@ public class AppUserController {
      * 新增用户
      */
     @PostMapping
-    public Result<?> add(@Valid @RequestBody UserAddDTO dto) {
+    public Result<?> add(@Valid @RequestBody AppUserAddDTO dto) {
         AppUser existUser = appUserService.getOne(new LambdaQueryWrapper<AppUser>()
                 .eq(AppUser::getUsername, dto.getUsername()));
         if (existUser != null) {
@@ -106,6 +106,13 @@ public class AppUserController {
         user.setRealName(dto.getRealName());
         user.setPhone(dto.getPhone());
         user.setEmail(dto.getEmail());
+        user.setAvatar(dto.getAvatar());
+        user.setGender(dto.getGender());
+        user.setAge(dto.getAge());
+        user.setAddress(dto.getAddress());
+        user.setEmergencyContact(dto.getEmergencyContact());
+        user.setEmergencyPhone(dto.getEmergencyPhone());
+        user.setHealthStatus(dto.getHealthStatus());
         user.setStatus(dto.getStatus() != null ? dto.getStatus() : 1);
 
         appUserService.save(user);
