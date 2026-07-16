@@ -259,6 +259,252 @@ CREATE TABLE `banner` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='轮播图表';
 
+-- ============================================================
+-- 10. 用药计划表（用药管理模块）
+-- ============================================================
+DROP TABLE IF EXISTS `medication_plan`;
+CREATE TABLE `medication_plan` (
+  `id` BIGINT NOT NULL AUTO_INCREMENT COMMENT '主键ID',
+  `elderly_id` BIGINT NOT NULL COMMENT '老人ID',
+  `elderly_name` VARCHAR(50) DEFAULT NULL COMMENT '老人姓名',
+  `medicine_name` VARCHAR(100) NOT NULL COMMENT '药品名称',
+  `dosage` VARCHAR(50) NOT NULL COMMENT '剂量',
+  `frequency` VARCHAR(20) DEFAULT '每天' COMMENT '用药频率：每天/每周/每月',
+  `times_per_day` INT DEFAULT 1 COMMENT '每天用药次数',
+  `take_times` VARCHAR(100) DEFAULT NULL COMMENT '用药时间（如：08:00,12:00,18:00）',
+  `start_date` DATE DEFAULT NULL COMMENT '开始日期',
+  `end_date` DATE DEFAULT NULL COMMENT '结束日期',
+  `doctor_id` BIGINT DEFAULT NULL COMMENT '开医嘱医生ID',
+  `doctor_name` VARCHAR(50) DEFAULT NULL COMMENT '医生姓名',
+  `prescription_no` VARCHAR(50) DEFAULT NULL COMMENT '医嘱编号',
+  `remark` VARCHAR(500) DEFAULT NULL COMMENT '备注',
+  `status` TINYINT NOT NULL DEFAULT 1 COMMENT '状态：0-已停用 1-执行中',
+  `create_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `update_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+  `deleted` TINYINT NOT NULL DEFAULT 0 COMMENT '逻辑删除：0-未删除 1-已删除',
+  PRIMARY KEY (`id`),
+  KEY `idx_elderly_id` (`elderly_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='用药计划表';
+
+-- ============================================================
+-- 11. 用药记录表（用药管理模块）
+-- ============================================================
+DROP TABLE IF EXISTS `medication_record`;
+CREATE TABLE `medication_record` (
+  `id` BIGINT NOT NULL AUTO_INCREMENT COMMENT '主键ID',
+  `plan_id` BIGINT NOT NULL COMMENT '用药计划ID',
+  `elderly_id` BIGINT NOT NULL COMMENT '老人ID',
+  `elderly_name` VARCHAR(50) DEFAULT NULL COMMENT '老人姓名',
+  `medicine_name` VARCHAR(100) NOT NULL COMMENT '药品名称',
+  `dosage` VARCHAR(50) NOT NULL COMMENT '服用剂量',
+  `take_time` DATETIME NOT NULL COMMENT '实际服用时间',
+  `status` TINYINT NOT NULL DEFAULT 0 COMMENT '状态：0-未服用 1-已服用 2-漏服 3-拒服',
+  `recorder_id` BIGINT DEFAULT NULL COMMENT '记录人ID',
+  `recorder_name` VARCHAR(50) DEFAULT NULL COMMENT '记录人姓名',
+  `remark` VARCHAR(500) DEFAULT NULL COMMENT '备注',
+  `create_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  PRIMARY KEY (`id`),
+  KEY `idx_plan_id` (`plan_id`),
+  KEY `idx_elderly_id` (`elderly_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='用药记录表';
+
+-- ============================================================
+-- 12. 紧急呼叫表（紧急呼叫模块）
+-- ============================================================
+DROP TABLE IF EXISTS `emergency_call`;
+CREATE TABLE `emergency_call` (
+  `id` BIGINT NOT NULL AUTO_INCREMENT COMMENT '主键ID',
+  `elderly_id` BIGINT NOT NULL COMMENT '老人ID',
+  `elderly_name` VARCHAR(50) DEFAULT NULL COMMENT '老人姓名',
+  `room_number` VARCHAR(20) DEFAULT NULL COMMENT '房间号',
+  `call_time` DATETIME NOT NULL COMMENT '呼叫时间',
+  `call_type` VARCHAR(20) DEFAULT 'emergency' COMMENT '呼叫类型：emergency-紧急求助 fall-跌倒报警 health-健康异常 other-其他',
+  `status` TINYINT NOT NULL DEFAULT 0 COMMENT '状态：0-待响应 1-处理中 2-已完成 3-已取消',
+  `responder_id` BIGINT DEFAULT NULL COMMENT '响应人员ID',
+  `responder_name` VARCHAR(50) DEFAULT NULL COMMENT '响应人员姓名',
+  `response_time` DATETIME DEFAULT NULL COMMENT '响应时间',
+  `handle_result` VARCHAR(500) DEFAULT NULL COMMENT '处理结果',
+  `location_lat` DECIMAL(10,7) DEFAULT NULL COMMENT '纬度',
+  `location_lng` DECIMAL(10,7) DEFAULT NULL COMMENT '经度',
+  `create_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `update_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+  PRIMARY KEY (`id`),
+  KEY `idx_elderly_id` (`elderly_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='紧急呼叫表';
+
+-- ============================================================
+-- 13. 房间表（床位管理模块）
+-- ============================================================
+DROP TABLE IF EXISTS `room`;
+CREATE TABLE `room` (
+  `id` BIGINT NOT NULL AUTO_INCREMENT COMMENT '主键ID',
+  `room_number` VARCHAR(20) NOT NULL COMMENT '房间号',
+  `floor` INT DEFAULT 1 COMMENT '楼层',
+  `room_type` VARCHAR(20) DEFAULT 'double' COMMENT '房间类型：single-单人间 double-双人间 triple-三人间 suite-套房',
+  `bed_count` INT DEFAULT 2 COMMENT '床位数量',
+  `window_direction` VARCHAR(20) DEFAULT NULL COMMENT '朝向：东/南/西/北/东南/西南',
+  `facility` VARCHAR(500) DEFAULT NULL COMMENT '配套设施',
+  `status` TINYINT NOT NULL DEFAULT 1 COMMENT '状态：0-停用 1-可用',
+  `remark` VARCHAR(500) DEFAULT NULL COMMENT '备注',
+  `create_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `update_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+  `deleted` TINYINT NOT NULL DEFAULT 0 COMMENT '逻辑删除：0-未删除 1-已删除',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_room_number` (`room_number`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='房间表';
+
+-- ============================================================
+-- 14. 床位表（床位管理模块）
+-- ============================================================
+DROP TABLE IF EXISTS `bed`;
+CREATE TABLE `bed` (
+  `id` BIGINT NOT NULL AUTO_INCREMENT COMMENT '主键ID',
+  `room_id` BIGINT NOT NULL COMMENT '房间ID',
+  `room_number` VARCHAR(20) DEFAULT NULL COMMENT '房间号',
+  `bed_number` VARCHAR(20) NOT NULL COMMENT '床位号',
+  `elderly_id` BIGINT DEFAULT NULL COMMENT '老人ID',
+  `elderly_name` VARCHAR(50) DEFAULT NULL COMMENT '老人姓名',
+  `check_in_time` DATETIME DEFAULT NULL COMMENT '入住时间',
+  `check_out_time` DATETIME DEFAULT NULL COMMENT '离院时间',
+  `status` TINYINT NOT NULL DEFAULT 1 COMMENT '状态：0-空闲 1-已入住 2-维修中',
+  `remark` VARCHAR(500) DEFAULT NULL COMMENT '备注',
+  `create_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `update_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+  `deleted` TINYINT NOT NULL DEFAULT 0 COMMENT '逻辑删除：0-未删除 1-已删除',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_bed_number` (`room_id`, `bed_number`),
+  KEY `idx_elderly_id` (`elderly_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='床位表';
+
+-- ============================================================
+-- 15. 费用项目表（费用管理模块）
+-- ============================================================
+DROP TABLE IF EXISTS `fee_item`;
+CREATE TABLE `fee_item` (
+  `id` BIGINT NOT NULL AUTO_INCREMENT COMMENT '主键ID',
+  `item_name` VARCHAR(100) NOT NULL COMMENT '费用名称',
+  `fee_type` VARCHAR(20) DEFAULT 'monthly' COMMENT '计费方式：monthly-按月 daily-按天 per_time-按次',
+  `price` DECIMAL(10,2) NOT NULL DEFAULT 0 COMMENT '单价',
+  `unit` VARCHAR(20) DEFAULT '月' COMMENT '计价单位',
+  `description` VARCHAR(500) DEFAULT NULL COMMENT '费用描述',
+  `status` TINYINT NOT NULL DEFAULT 1 COMMENT '状态：0-停用 1-启用',
+  `sort_order` INT DEFAULT 0 COMMENT '排序',
+  `create_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `update_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+  `deleted` TINYINT NOT NULL DEFAULT 0 COMMENT '逻辑删除：0-未删除 1-已删除',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='费用项目表';
+
+-- ============================================================
+-- 16. 费用账单表（费用管理模块）
+-- ============================================================
+DROP TABLE IF EXISTS `fee_bill`;
+CREATE TABLE `fee_bill` (
+  `id` BIGINT NOT NULL AUTO_INCREMENT COMMENT '主键ID',
+  `bill_no` VARCHAR(30) NOT NULL COMMENT '账单编号',
+  `elderly_id` BIGINT NOT NULL COMMENT '老人ID',
+  `elderly_name` VARCHAR(50) DEFAULT NULL COMMENT '老人姓名',
+  `bill_month` VARCHAR(7) NOT NULL COMMENT '账单月份（格式：yyyy-MM）',
+  `total_amount` DECIMAL(10,2) NOT NULL DEFAULT 0 COMMENT '总金额',
+  `paid_amount` DECIMAL(10,2) NOT NULL DEFAULT 0 COMMENT '已付金额',
+  `status` TINYINT NOT NULL DEFAULT 0 COMMENT '状态：0-待支付 1-部分支付 2-已结清',
+  `due_date` DATE DEFAULT NULL COMMENT '到期日期',
+  `remark` VARCHAR(500) DEFAULT NULL COMMENT '备注',
+  `create_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `update_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+  `deleted` TINYINT NOT NULL DEFAULT 0 COMMENT '逻辑删除：0-未删除 1-已删除',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_bill_no` (`bill_no`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='费用账单表';
+
+-- ============================================================
+-- 17. 费用明细表（费用管理模块）
+-- ============================================================
+DROP TABLE IF EXISTS `fee_detail`;
+CREATE TABLE `fee_detail` (
+  `id` BIGINT NOT NULL AUTO_INCREMENT COMMENT '主键ID',
+  `bill_id` BIGINT NOT NULL COMMENT '账单ID',
+  `bill_no` VARCHAR(30) DEFAULT NULL COMMENT '账单编号',
+  `item_id` BIGINT NOT NULL COMMENT '费用项目ID',
+  `item_name` VARCHAR(100) DEFAULT NULL COMMENT '费用项目名称',
+  `quantity` DECIMAL(10,2) DEFAULT 1 COMMENT '数量',
+  `unit_price` DECIMAL(10,2) DEFAULT 0 COMMENT '单价',
+  `amount` DECIMAL(10,2) NOT NULL DEFAULT 0 COMMENT '金额',
+  `remark` VARCHAR(500) DEFAULT NULL COMMENT '备注',
+  `create_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  PRIMARY KEY (`id`),
+  KEY `idx_bill_id` (`bill_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='费用明细表';
+
+-- ============================================================
+-- 18. 支付记录表（支付模块）
+-- ============================================================
+DROP TABLE IF EXISTS `payment`;
+CREATE TABLE `payment` (
+  `id` BIGINT NOT NULL AUTO_INCREMENT COMMENT '主键ID',
+  `pay_no` VARCHAR(30) NOT NULL COMMENT '支付编号',
+  `bill_id` BIGINT DEFAULT NULL COMMENT '账单ID',
+  `bill_no` VARCHAR(30) DEFAULT NULL COMMENT '账单编号',
+  `elderly_id` BIGINT NOT NULL COMMENT '老人ID',
+  `elderly_name` VARCHAR(50) DEFAULT NULL COMMENT '老人姓名',
+  `pay_amount` DECIMAL(10,2) NOT NULL DEFAULT 0 COMMENT '支付金额',
+  `pay_method` VARCHAR(20) DEFAULT 'wechat' COMMENT '支付方式：wechat-微信支付 alipay-支付宝 bank-银行转账 cash-现金',
+  `pay_time` DATETIME DEFAULT NULL COMMENT '支付时间',
+  `status` TINYINT NOT NULL DEFAULT 0 COMMENT '状态：0-待支付 1-支付中 2-支付成功 3-支付失败',
+  `transaction_id` VARCHAR(100) DEFAULT NULL COMMENT '第三方交易ID',
+  `remark` VARCHAR(500) DEFAULT NULL COMMENT '备注',
+  `create_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `update_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_pay_no` (`pay_no`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='支付记录表';
+
+-- ============================================================
+-- 19. 活动表（活动管理模块）
+-- ============================================================
+DROP TABLE IF EXISTS `activity`;
+CREATE TABLE `activity` (
+  `id` BIGINT NOT NULL AUTO_INCREMENT COMMENT '主键ID',
+  `activity_name` VARCHAR(100) NOT NULL COMMENT '活动名称',
+  `activity_type` VARCHAR(20) DEFAULT 'culture' COMMENT '活动类型：culture-文化娱乐 sports-体育健身 health-健康讲座 volunteer-志愿者活动 other-其他',
+  `description` TEXT COMMENT '活动描述',
+  `start_time` DATETIME NOT NULL COMMENT '开始时间',
+  `end_time` DATETIME NOT NULL COMMENT '结束时间',
+  `location` VARCHAR(100) DEFAULT NULL COMMENT '活动地点',
+  `max_participants` INT DEFAULT 20 COMMENT '最大参与人数',
+  `current_participants` INT DEFAULT 0 COMMENT '当前报名人数',
+  `cover_image` VARCHAR(255) DEFAULT NULL COMMENT '封面图片',
+  `status` TINYINT NOT NULL DEFAULT 0 COMMENT '状态：0-未发布 1-报名中 2-进行中 3-已结束',
+  `organizer_id` BIGINT DEFAULT NULL COMMENT '组织者ID',
+  `organizer_name` VARCHAR(50) DEFAULT NULL COMMENT '组织者姓名',
+  `remark` VARCHAR(500) DEFAULT NULL COMMENT '备注',
+  `create_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `update_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+  `deleted` TINYINT NOT NULL DEFAULT 0 COMMENT '逻辑删除：0-未删除 1-已删除',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='活动表';
+
+-- ============================================================
+-- 20. 活动报名表（活动管理模块）
+-- ============================================================
+DROP TABLE IF EXISTS `activity_signup`;
+CREATE TABLE `activity_signup` (
+  `id` BIGINT NOT NULL AUTO_INCREMENT COMMENT '主键ID',
+  `activity_id` BIGINT NOT NULL COMMENT '活动ID',
+  `activity_name` VARCHAR(100) DEFAULT NULL COMMENT '活动名称',
+  `elderly_id` BIGINT NOT NULL COMMENT '老人ID',
+  `elderly_name` VARCHAR(50) DEFAULT NULL COMMENT '老人姓名',
+  `signup_time` DATETIME NOT NULL COMMENT '报名时间',
+  `status` TINYINT NOT NULL DEFAULT 0 COMMENT '状态：0-待审核 1-已通过 2-已签到 3-已取消',
+  `sign_in_time` DATETIME DEFAULT NULL COMMENT '签到时间',
+  `remark` VARCHAR(500) DEFAULT NULL COMMENT '备注',
+  `create_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_activity_elderly` (`activity_id`, `elderly_id`),
+  KEY `idx_activity_id` (`activity_id`),
+  KEY `idx_elderly_id` (`elderly_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='活动报名表';
+
 
 -- ============================================================
 -- 初始化数据
@@ -342,6 +588,129 @@ INSERT INTO `sys_role` (`role_name`, `role_code`, `description`, `status`, `sort
 ('营养师', 'DIETITIAN', '营养膳食指导', 1, 5),
 ('康复师', 'THERAPIST', '康复理疗服务', 1, 6),
 ('保洁员', 'CLEANER', '环境卫生维护', 1, 7);
+
+-- 用药计划
+INSERT INTO `medication_plan` (`elderly_id`, `elderly_name`, `medicine_name`, `dosage`, `frequency`, `times_per_day`, `take_times`, `start_date`, `end_date`, `doctor_id`, `doctor_name`, `prescription_no`, `remark`, `status`) VALUES
+(1, '王大爷', '硝苯地平缓释片', '1片', '每天', 2, '08:00,18:00', '2026-05-01', '2026-08-01', 3, '张医生', 'RX20260501001', '高血压用药，不可随意停药', 1),
+(1, '王大爷', '二甲双胍', '1片', '每天', 3, '08:00,12:00,18:00', '2026-05-01', '2026-08-01', 3, '张医生', 'RX20260501002', '糖尿病用药', 1),
+(2, '李奶奶', '钙片', '2片', '每天', 1, '20:00', '2026-05-01', '2026-11-01', NULL, NULL, NULL, '骨质疏松补钙', 1),
+(3, '张爷爷', '硝酸甘油', '1片', '每天', 1, '08:00', '2026-05-01', '2026-07-01', 3, '张医生', 'RX20260501003', '冠心病用药', 1);
+
+-- 用药记录
+INSERT INTO `medication_record` (`plan_id`, `elderly_id`, `elderly_name`, `medicine_name`, `dosage`, `take_time`, `status`, `recorder_id`, `recorder_name`, `remark`) VALUES
+(1, 1, '王大爷', '硝苯地平缓释片', '1片', '2026-05-09 08:00:00', 1, 3, '张护理', NULL),
+(1, 1, '王大爷', '硝苯地平缓释片', '1片', '2026-05-09 18:00:00', 1, 3, '张护理', NULL),
+(2, 1, '王大爷', '二甲双胍', '1片', '2026-05-09 08:00:00', 1, 3, '张护理', NULL),
+(2, 1, '王大爷', '二甲双胍', '1片', '2026-05-09 12:00:00', 2, NULL, NULL, '漏服'),
+(3, 2, '李奶奶', '钙片', '2片', '2026-05-09 20:00:00', 1, 4, '李护理', NULL);
+
+-- 紧急呼叫
+INSERT INTO `emergency_call` (`elderly_id`, `elderly_name`, `room_number`, `call_time`, `call_type`, `status`, `responder_id`, `responder_name`, `response_time`, `handle_result`, `location_lat`, `location_lng`) VALUES
+(2, '李奶奶', '101', '2026-05-08 14:30:00', 'emergency', 2, 4, '李护理', '2026-05-08 14:32:00', '老人突发头晕，已送医检查，无大碍', 30.5728, 104.0668),
+(1, '王大爷', '101', '2026-05-06 09:15:00', 'health', 2, 3, '张护理', '2026-05-06 09:18:00', '血压偏高，已调整用药', 30.5728, 104.0668),
+(4, '赵奶奶', '102', '2026-05-09 16:00:00', 'other', 1, 3, '张护理', '2026-05-09 16:05:00', '老人想找人聊天', 30.5729, 104.0669);
+
+-- 房间
+INSERT INTO `room` (`room_number`, `floor`, `room_type`, `bed_count`, `window_direction`, `facility`, `status`, `remark`) VALUES
+('101', 1, 'double', 2, '南', '空调、电视、独立卫生间、热水器', 1, '朝南采光好'),
+('102', 1, 'double', 2, '东南', '空调、电视、独立卫生间、热水器', 1, NULL),
+('103', 1, 'double', 2, '北', '空调、电视、独立卫生间、热水器', 1, NULL),
+('104', 1, 'single', 1, '南', '空调、电视、独立卫生间、热水器、沙发', 1, '单人间'),
+('201', 2, 'double', 2, '南', '空调、电视、独立卫生间、热水器', 1, NULL),
+('202', 2, 'double', 2, '东南', '空调、电视、独立卫生间、热水器', 1, NULL),
+('203', 2, 'triple', 3, '北', '空调、电视、公共卫生间', 1, NULL),
+('301', 3, 'suite', 2, '东南', '空调、电视、独立卫生间、热水器、客厅', 1, '套房');
+
+-- 床位
+INSERT INTO `bed` (`room_id`, `room_number`, `bed_number`, `elderly_id`, `elderly_name`, `check_in_time`, `check_out_time`, `status`, `remark`) VALUES
+(1, '101', '1', 1, '王大爷', '2026-03-01 08:00:00', NULL, 1, NULL),
+(1, '101', '2', 2, '李奶奶', '2026-03-01 08:00:00', NULL, 1, NULL),
+(2, '102', '1', 3, '张爷爷', '2026-04-01 08:00:00', NULL, 1, NULL),
+(2, '102', '2', 4, '赵奶奶', '2026-04-01 08:00:00', NULL, 1, NULL),
+(3, '103', '1', 5, '刘大爷', '2026-05-01 08:00:00', NULL, 1, NULL),
+(3, '103', '2', NULL, NULL, NULL, NULL, 0, NULL),
+(4, '104', '1', NULL, NULL, NULL, NULL, 0, NULL),
+(5, '201', '1', NULL, NULL, NULL, NULL, 0, NULL),
+(5, '201', '2', NULL, NULL, NULL, NULL, 0, NULL),
+(6, '202', '1', NULL, NULL, NULL, NULL, 0, NULL),
+(6, '202', '2', NULL, NULL, NULL, NULL, 0, NULL),
+(7, '203', '1', NULL, NULL, NULL, NULL, 0, NULL),
+(7, '203', '2', NULL, NULL, NULL, NULL, 0, NULL),
+(7, '203', '3', NULL, NULL, NULL, NULL, 0, NULL),
+(8, '301', '1', NULL, NULL, NULL, NULL, 0, NULL),
+(8, '301', '2', NULL, NULL, NULL, NULL, 0, NULL);
+
+-- 费用项目
+INSERT INTO `fee_item` (`item_name`, `fee_type`, `price`, `unit`, `description`, `status`, `sort_order`) VALUES
+('床位费（双人间）', 'monthly', 1800.00, '月', '双人间床位费用', 1, 1),
+('床位费（单人间）', 'monthly', 2800.00, '月', '单人间床位费用', 1, 2),
+('床位费（套房）', 'monthly', 5000.00, '月', '套房床位费用', 1, 3),
+('护理费（自理）', 'monthly', 800.00, '月', '自理老人护理费', 1, 4),
+('护理费（半护理）', 'monthly', 1500.00, '月', '半护理老人护理费', 1, 5),
+('护理费（全护理）', 'monthly', 2500.00, '月', '全护理老人护理费', 1, 6),
+('餐饮费', 'monthly', 1200.00, '月', '三餐饮食费用', 1, 7),
+('水电费', 'monthly', 200.00, '月', '水电气费用', 1, 8),
+('洗衣费', 'monthly', 100.00, '月', '衣物清洗费用', 1, 9),
+('康复理疗费', 'per_time', 150.00, '次', '康复理疗服务费用', 1, 10),
+('洗浴护理费', 'per_time', 100.00, '次', '洗浴护理服务费用', 1, 11);
+
+-- 费用账单
+INSERT INTO `fee_bill` (`bill_no`, `elderly_id`, `elderly_name`, `bill_month`, `total_amount`, `paid_amount`, `status`, `due_date`, `remark`) VALUES
+('BILL202605001', 1, '王大爷', '2026-05', 3500.00, 3500.00, 2, '2026-05-15', NULL),
+('BILL202605002', 2, '李奶奶', '2026-05', 4500.00, 4000.00, 1, '2026-05-15', '部分支付'),
+('BILL202605003', 3, '张爷爷', '2026-05', 3500.00, 0.00, 0, '2026-05-15', NULL),
+('BILL202605004', 4, '赵奶奶', '2026-05', 3000.00, 3000.00, 2, '2026-05-15', NULL),
+('BILL202605005', 5, '刘大爷', '2026-05', 3300.00, 1500.00, 1, '2026-05-15', NULL);
+
+-- 费用明细
+INSERT INTO `fee_detail` (`bill_id`, `bill_no`, `item_id`, `item_name`, `quantity`, `unit_price`, `amount`, `remark`) VALUES
+(1, 'BILL202605001', 1, '床位费（双人间）', 1, 1800.00, 1800.00, NULL),
+(1, 'BILL202605001', 5, '护理费（半护理）', 1, 1500.00, 1500.00, NULL),
+(1, 'BILL202605001', 7, '餐饮费', 1, 1200.00, 1200.00, NULL),
+(1, 'BILL202605001', 8, '水电费', 1, 200.00, 200.00, NULL),
+(2, 'BILL202605002', 1, '床位费（双人间）', 1, 1800.00, 1800.00, NULL),
+(2, 'BILL202605002', 6, '护理费（全护理）', 1, 2500.00, 2500.00, NULL),
+(2, 'BILL202605002', 7, '餐饮费', 1, 1200.00, 1200.00, NULL),
+(3, 'BILL202605003', 1, '床位费（双人间）', 1, 1800.00, 1800.00, NULL),
+(3, 'BILL202605003', 5, '护理费（半护理）', 1, 1500.00, 1500.00, NULL),
+(3, 'BILL202605003', 7, '餐饮费', 1, 1200.00, 1200.00, NULL),
+(4, 'BILL202605004', 1, '床位费（双人间）', 1, 1800.00, 1800.00, NULL),
+(4, 'BILL202605004', 4, '护理费（自理）', 1, 800.00, 800.00, NULL),
+(4, 'BILL202605004', 7, '餐饮费', 1, 1200.00, 1200.00, NULL),
+(5, 'BILL202605005', 1, '床位费（双人间）', 1, 1800.00, 1800.00, NULL),
+(5, 'BILL202605005', 4, '护理费（自理）', 1, 800.00, 800.00, NULL),
+(5, 'BILL202605005', 7, '餐饮费', 1, 1200.00, 1200.00, NULL),
+(5, 'BILL202605005', 8, '水电费', 1, 200.00, 200.00, NULL),
+(5, 'BILL202605005', 9, '洗衣费', 1, 100.00, 100.00, NULL);
+
+-- 支付记录
+INSERT INTO `payment` (`pay_no`, `bill_id`, `bill_no`, `elderly_id`, `elderly_name`, `pay_amount`, `pay_method`, `pay_time`, `status`, `transaction_id`, `remark`) VALUES
+('PAY202605001', 1, 'BILL202605001', 1, '王大爷', 3500.00, 'wechat', '2026-05-10 10:30:00', 2, 'wx20260510001', NULL),
+('PAY202605002', 2, 'BILL202605002', 2, '李奶奶', 4000.00, 'alipay', '2026-05-12 14:00:00', 2, 'ali20260512001', '剩余500元月底结清'),
+('PAY202605003', 4, 'BILL202605004', 4, '赵奶奶', 3000.00, 'cash', '2026-05-08 09:00:00', 2, NULL, '现金支付'),
+('PAY202605004', 5, 'BILL202605005', 5, '刘大爷', 1500.00, 'bank', '2026-05-14 16:30:00', 2, 'bank20260514001', NULL),
+('PAY202605005', 3, 'BILL202605003', 3, '张爷爷', 3500.00, 'wechat', NULL, 0, NULL, '待支付');
+
+-- 活动
+INSERT INTO `activity` (`activity_name`, `activity_type`, `description`, `start_time`, `end_time`, `location`, `max_participants`, `current_participants`, `cover_image`, `status`, `organizer_id`, `organizer_name`, `remark`) VALUES
+('端午节包粽子活动', 'culture', '弘扬传统文化，组织老人包粽子，共度佳节', '2026-05-31 09:00:00', '2026-05-31 11:30:00', '活动中心', 30, 15, '/images/activity1.jpg', 1, 2, '张管理', NULL),
+('太极拳晨练', 'sports', '专业教练指导老人练习太极拳，强身健体', '2026-06-01 07:00:00', '2026-06-01 08:30:00', '室外广场', 40, 20, '/images/activity2.jpg', 1, 3, '张护理', '每周一、三、五'),
+('健康知识讲座-夏季养生', 'health', '邀请医生讲解夏季老年人养生知识', '2026-06-05 14:00:00', '2026-06-05 16:00:00', '会议室', 50, 35, '/images/activity3.jpg', 1, 3, '张医生', NULL),
+('志愿者陪伴聊天', 'volunteer', '组织志愿者与老人聊天互动，陪伴解闷', '2026-06-08 10:00:00', '2026-06-08 12:00:00', '各楼层活动室', 20, 10, '/images/activity4.jpg', 1, 2, '张管理', NULL),
+('书法兴趣班', 'culture', '书法老师指导老人练习书法，陶冶情操', '2026-06-10 09:00:00', '2026-06-10 11:00:00', '书画室', 15, 8, '/images/activity5.jpg', 0, 2, '张管理', '待发布');
+
+-- 活动报名
+INSERT INTO `activity_signup` (`activity_id`, `activity_name`, `elderly_id`, `elderly_name`, `signup_time`, `status`, `sign_in_time`, `remark`) VALUES
+(1, '端午节包粽子活动', 1, '王大爷', '2026-05-25 10:00:00', 2, '2026-05-31 08:55:00', NULL),
+(1, '端午节包粽子活动', 2, '李奶奶', '2026-05-26 14:00:00', 1, NULL, NULL),
+(1, '端午节包粽子活动', 3, '张爷爷', '2026-05-27 09:00:00', 0, NULL, NULL),
+(2, '太极拳晨练', 1, '王大爷', '2026-05-28 08:00:00', 2, '2026-06-01 06:55:00', NULL),
+(2, '太极拳晨练', 5, '刘大爷', '2026-05-29 08:30:00', 1, NULL, NULL),
+(3, '健康知识讲座-夏季养生', 1, '王大爷', '2026-06-01 10:00:00', 0, NULL, NULL),
+(3, '健康知识讲座-夏季养生', 2, '李奶奶', '2026-06-02 11:00:00', 0, NULL, NULL),
+(3, '健康知识讲座-夏季养生', 4, '赵奶奶', '2026-06-03 09:00:00', 1, NULL, NULL),
+(4, '志愿者陪伴聊天', 4, '赵奶奶', '2026-06-05 14:00:00', 0, NULL, NULL),
+(5, '书法兴趣班', 3, '张爷爷', '2026-06-08 10:00:00', 0, NULL, '有书法基础');
 
 
 ALTER TABLE service_order 

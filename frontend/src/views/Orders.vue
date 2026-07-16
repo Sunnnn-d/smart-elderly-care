@@ -44,7 +44,7 @@
               <span>{{ order.appointmentTime }}</span>
             </div>
             <div class="meta-item">
-              <el-icon><MapPin /></el-icon>
+              <el-icon><Location /></el-icon>
               <span>{{ order.address }}</span>
             </div>
           </div>
@@ -53,7 +53,7 @@
             <span>服务人员：{{ order.nurseName }}</span>
           </div>
           <div v-if="order.cancelReason" class="cancel-info">
-            <el-icon><Warning /></el-icon>
+            <el-icon><WarningFilled /></el-icon>
             <span>取消原因：{{ order.cancelReason }}</span>
             <span class="cancel-type">({{ getCancelTypeText(order.cancelType) }})</span>
           </div>
@@ -110,7 +110,7 @@ import { getAppUserOrders, userCancelOrder } from '../api'
 import { useUserStore } from '../stores/user'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { ShoppingCart, User, Phone, Calendar, MapPin, UserFilled, Warning } from '@element-plus/icons-vue'
+import { ShoppingCart, User, Phone, Calendar, Location, UserFilled, WarningFilledFilled } from '@element-plus/icons-vue'
 
 const router = useRouter()
 const userStore = useUserStore()

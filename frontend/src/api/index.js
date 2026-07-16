@@ -60,3 +60,33 @@ export const changeAppPassword = (data) => request.post('/app-auth/change-passwo
 export const uploadAppAvatar = (formData) => request.post('/app-auth/avatar', formData, {
   headers: { 'Content-Type': 'multipart/form-data' }
 })
+
+// ===== 消息管理 =====
+export const getAppUserMessages = (params) => request.get('/message/app-user/list', { params })
+export const getAppUserUnreadCount = () => request.get('/message/app-user/unread-count')
+export const markAppUserMessageRead = (messageId) => request.put(`/message/app-user/${messageId}/read`)
+export const markAllAppUserMessagesRead = () => request.put('/message/app-user/all/read')
+export const deleteAppUserMessage = (messageId) => request.delete(`/message/app-user/${messageId}`)
+
+// ===== 用药管理 =====
+export const getMedicationPlansByElderlyId = (elderlyId) => request.get(`/medication-plan/elderly/${elderlyId}`)
+export const getMedicationRecordsByElderlyId = (elderlyId) => request.get(`/medication-record/elderly/${elderlyId}`)
+
+// ===== 紧急呼叫 =====
+export const createEmergencyCall = (data) => request.post('/emergency-call', data)
+
+// ===== 活动管理 =====
+export const getAllActivities = () => request.get('/activity/all')
+export const getActivityById = (id) => request.get(`/activity/${id}`)
+
+// ===== 活动报名 =====
+export const signupActivity = (activityId, elderlyId, elderlyName) => request.post('/activity-signup', null, { params: { activityId, elderlyId, elderlyName } })
+export const getActivitySignupsByElderlyId = (elderlyId) => request.get(`/activity-signup/elderly/${elderlyId}`)
+export const cancelActivitySignup = (id) => request.put(`/activity-signup/cancel/${id}`)
+
+// ===== 费用账单 =====
+export const getFeeBillsByElderlyId = (elderlyId) => request.get(`/fee-bill/elderly/${elderlyId}`)
+
+// ===== 支付管理 =====
+export const getPaymentsByElderlyId = (elderlyId) => request.get(`/payment/elderly/${elderlyId}`)
+export const createPayment = (data) => request.post('/payment', data)

@@ -28,7 +28,7 @@
         <div class="message-icon">
           <el-icon v-if="msg.type === 'order'" color="#FF8C00"><ShoppingCart /></el-icon>
           <el-icon v-else-if="msg.type === 'system'" color="#1890ff"><Bell /></el-icon>
-          <el-icon v-else color="#52c41a"><Info /></el-icon>
+          <el-icon v-else color="#52c41a"><InfoFilled /></el-icon>
         </div>
         <div class="message-content">
           <div class="message-header">
@@ -64,7 +64,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { getAppUserMessages, getAppUserUnreadCount, markAppUserMessageRead, markAllAppUserMessagesRead, deleteAppUserMessage } from '../api'
 import { ElMessage } from 'element-plus'
-import { Finished, ShoppingCart, Bell, Info } from '@element-plus/icons-vue'
+import { Finished, ShoppingCart, Bell, InfoFilledFilled } from '@element-plus/icons-vue'
 
 const router = useRouter()
 const activeTab = ref('all')

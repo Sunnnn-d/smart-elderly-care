@@ -54,6 +54,24 @@ const routes = [
     name: 'Orders',
     component: () => import('../views/Orders.vue'),
     meta: { title: '我的订单' }
+  },
+  {
+    path: '/activities',
+    name: 'Activities',
+    component: () => import('../views/Activities.vue'),
+    meta: { title: '活动中心' }
+  },
+  {
+    path: '/medication',
+    name: 'Medication',
+    component: () => import('../views/Medication.vue'),
+    meta: { title: '用药管理' }
+  },
+  {
+    path: '/bills',
+    name: 'Bills',
+    component: () => import('../views/Bills.vue'),
+    meta: { title: '费用账单' }
   }
 ]
 

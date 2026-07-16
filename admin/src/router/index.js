@@ -89,6 +89,42 @@ const routes = [
         name: 'Message',
         component: () => import('../views/message/Index.vue'),
         meta: { title: '消息管理', icon: 'Message' }
+      },
+      {
+        path: 'medication',
+        name: 'Medication',
+        component: () => import('../views/medication/Index.vue'),
+        meta: { title: '用药管理', icon: 'Pill' }
+      },
+      {
+        path: 'emergency',
+        name: 'Emergency',
+        component: () => import('../views/emergency/Index.vue'),
+        meta: { title: '紧急呼叫', icon: 'Phone' }
+      },
+      {
+        path: 'bed',
+        name: 'Bed',
+        component: () => import('../views/bed/Index.vue'),
+        meta: { title: '床位管理', icon: 'Home' }
+      },
+      {
+        path: 'fee',
+        name: 'Fee',
+        component: () => import('../views/fee/Index.vue'),
+        meta: { title: '费用管理', icon: 'Wallet' }
+      },
+      {
+        path: 'payment',
+        name: 'Payment',
+        component: () => import('../views/payment/Index.vue'),
+        meta: { title: '支付管理', icon: 'CreditCard' }
+      },
+      {
+        path: 'activity',
+        name: 'Activity',
+        component: () => import('../views/activity/Index.vue'),
+        meta: { title: '活动管理', icon: 'Trophy' }
       }
     ]
   }

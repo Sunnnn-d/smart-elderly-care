@@ -4,7 +4,7 @@
       <h2>消息管理</h2>
       <div class="header-actions">
         <el-button type="primary" @click="openSendModal">
-          <el-icon><Send /></el-icon>
+          <el-icon><ChatLineRound /></el-icon>
           发送消息
         </el-button>
         <el-button type="primary" @click="markAllRead" :loading="markAllLoading">
@@ -32,7 +32,7 @@
         <div class="message-icon">
           <el-icon v-if="msg.type === 'order'" color="#FF8C00"><ShoppingCart /></el-icon>
           <el-icon v-else-if="msg.type === 'system'" color="#1890ff"><Bell /></el-icon>
-          <el-icon v-else color="#52c41a"><Info /></el-icon>
+          <el-icon v-else color="#52c41a"><InfoFilled /></el-icon>
         </div>
         <div class="message-content">
           <div class="message-header">
@@ -105,7 +105,7 @@
 <script setup>import { ref, computed, onMounted, reactive } from 'vue';
 import { getAdminMessages, markAdminMessageRead, markAllAdminMessagesRead, deleteAdminMessage, sendMessageToUser, sendSystemMessage, getMessageTypes } from '../../api';
 import { ElMessage } from 'element-plus';
-import { Finished, ShoppingCart, Bell, Info, Send } from '@element-plus/icons-vue';
+import { Finished, ShoppingCart, Bell, InfoFilledFilled, ChatLineRound } from '@element-plus/icons-vue';
 const activeTab = ref('all');
 const pageNum = ref(1);
 const pageSize = ref(20);
