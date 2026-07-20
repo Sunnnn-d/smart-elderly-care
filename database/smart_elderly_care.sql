@@ -546,10 +546,14 @@ INSERT INTO `sys_user` (`username`, `password`, `real_name`, `phone`, `role`, `s
 ('nurse1', '$10$Cb7RzenP.Ae3UWqNffVwGuHtauET4qe.VbLZrvXsUHVGleYIJMNWC', '张护理', '13800000002', 3, 1),
 ('nurse2', '$10$Cb7RzenP.Ae3UWqNffVwGuHtauET4qe.VbLZrvXsUHVGleYIJMNWC', '李护理', '13800000003', 3, 1);
 
--- 客户端用户测试账号（密码：123456）
+-- 客户端用户测试账号（密码：a123456，BCrypt加密）
+-- 每个老人对应一个监护人账号，监护人可以登录移动端查看老人信息
 INSERT INTO `app_user` (`username`, `password`, `real_name`, `phone`, `gender`, `age`, `address`, `emergency_contact`, `emergency_phone`, `health_status`, `status`) VALUES
-('user1', '$10$Cb7RzenP.Ae3UWqNffVwGuHtauET4qe.VbLZrvXsUHVGleYIJMNWC', '王明', '13900000001', 1, 45, '幸福路100号3栋201', '王大爷', '13700000001', '良好', 1),
-('user2', '$10$Cb7RzenP.Ae3UWqNffVwGuHtauET4qe.VbLZrvXsUHVGleYIJMNWC', '李华', '13900000002', 0, 38, '和平街50号1单元302', '李奶奶', '13700000002', '一般', 1);
+('user1', '$2b$12$njl10MfjRrzCIwS05RXFFeo8ECm2CtXfKCjokyx6/6o61Th.V2hBm', '王明', '13900000001', 1, 45, '幸福路100号3栋201', '王大爷', '13700000001', '良好', 1),
+('user2', '$2b$12$njl10MfjRrzCIwS05RXFFeo8ECm2CtXfKCjokyx6/6o61Th.V2hBm', '李华', '13900000002', 0, 38, '和平街50号1单元302', '李奶奶', '13700000002', '一般', 1),
+('user3', '$2b$12$njl10MfjRrzCIwS05RXFFeo8ECm2CtXfKCjokyx6/6o61Th.V2hBm', '张强', '13900000003', 1, 42, '建设路88号2栋101', '张爷爷', '13700000003', '良好', 1),
+('user4', '$2b$12$njl10MfjRrzCIwS05RXFFeo8ECm2CtXfKCjokyx6/6o61Th.V2hBm', '赵伟', '13900000004', 1, 39, '人民路66号5栋402', '赵奶奶', '13700000004', '良好', 1),
+('user5', '$2b$12$njl10MfjRrzCIwS05RXFFeo8ECm2CtXfKCjokyx6/6o61Th.V2hBm', '刘刚', '13900000005', 1, 40, '光明路22号3单元501', '刘大爷', '13700000005', '良好', 1);
 
 -- 老人档案
 INSERT INTO `elderly_profile` (`name`, `gender`, `age`, `phone`, `emergency_contact`, `emergency_phone`, `address`, `blood_type`, `allergies`, `chronic_diseases`, `care_level`, `room_number`, `bed_number`, `status`, `remark`) VALUES
