@@ -62,7 +62,7 @@
     />
 
     <el-dialog v-model="showSendDialog" title="发送消息给管理员" width="480px" :close-on-click-modal="false">
-      <el-form :model="sendForm" label-width="80px">
+      <el-form :model="sendForm" label-width="90px">
         <el-form-item label="消息类型">
           <el-select v-model="sendForm.type" placeholder="请选择消息类型">
             <el-option label="服务提醒" value="service" />
