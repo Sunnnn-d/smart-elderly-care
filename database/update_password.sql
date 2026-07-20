@@ -1,0 +1,1 @@
+UPDATE app_user SET password = '$2b$12$njl10MfjRrzCIwS05RXFFeo8ECm2CtXfKCjokyx6/6o61Th.V2hBm';

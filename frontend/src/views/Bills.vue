@@ -111,7 +111,7 @@
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { getFeeBillsByElderlyId, createPayment } from '../api'
+import { getUserFeeBills, createPayment } from '../api'
 import { useUserStore } from '../stores/user'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Calendar, Clock, InfoFilled, ChatDotRound, Wallet } from '@element-plus/icons-vue'
@@ -148,14 +148,9 @@ const loadBills = async () => {
     router.push('/login')
     return
   }
-  if (!userStore.userInfo?.id) {
-    console.warn('用户信息未加载完成')
-    ElMessage.warning('用户信息加载中，请稍候')
-    return
-  }
   loading.value = true
   try {
-    const res = await getFeeBillsByElderlyId(userStore.userInfo.id)
+    const res = await getUserFeeBills()
     if (!isMounted.value) return
     bills.value = res.data || []
     total.value = bills.value.length

@@ -4,7 +4,7 @@ import { ref, computed } from 'vue'
 export const useUserStore = defineStore('user', () => {
   const token = ref(localStorage.getItem('token') || '')
   const userInfo = ref(null)
-  const isLogin = computed(() => !!token.value && userInfo.value)
+  const isLogin = computed(() => !!token.value)
 
   const login = (newToken, info) => {
     token.value = newToken

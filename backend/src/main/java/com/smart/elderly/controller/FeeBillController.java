@@ -2,11 +2,15 @@ package com.smart.elderly.controller;
 
 import com.smart.elderly.common.PageResult;
 import com.smart.elderly.common.Result;
+import com.smart.elderly.config.JwtUtil;
 import com.smart.elderly.entity.FeeBill;
+import com.smart.elderly.entity.AppUser;
 import com.smart.elderly.service.FeeBillService;
+import com.smart.elderly.service.AppUserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.Map;
 
 @RestController
@@ -15,6 +19,10 @@ import java.util.Map;
 public class FeeBillController {
 
     private final FeeBillService feeBillService;
+    
+    private final AppUserService appUserService;
+    
+    private final JwtUtil jwtUtil;
 
     @GetMapping("/list")
     public Result<PageResult<FeeBill>> list(@RequestParam Map<String, Object> params) {
@@ -29,6 +37,16 @@ public class FeeBillController {
     @GetMapping("/elderly/{elderlyId}")
     public Result<?> getByElderlyId(@PathVariable Long elderlyId) {
         return feeBillService.getBillsByElderlyId(elderlyId);
+    }
+
+    @GetMapping("/user/list")
+    public Result<?> getByUserId(HttpServletRequest request) {
+        Long userId = jwtUtil.getUserIdFromRequest(request);
+        AppUser user = appUserService.getById(userId);
+        if (user == null || user.getElderlyId() == null) {
+            return Result.success(null);
+        }
+        return feeBillService.getBillsByElderlyId(user.getElderlyId());
     }
 
     @GetMapping("/elderly/{elderlyId}/month/{month}")

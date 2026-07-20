@@ -11,6 +11,7 @@ import com.smart.elderly.entity.AppUser;
 import com.smart.elderly.mapper.AppUserMapper;
 import com.smart.elderly.service.AppUserService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -20,6 +21,7 @@ import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class AppUserServiceImpl extends ServiceImpl<AppUserMapper, AppUser> implements AppUserService {
 
     private final PasswordEncoder passwordEncoder;
@@ -51,31 +53,44 @@ public class AppUserServiceImpl extends ServiceImpl<AppUserMapper, AppUser> impl
 
     @Override
     public Result<?> login(LoginDTO dto) {
-        AppUser user = this.getOne(new LambdaQueryWrapper<AppUser>()
-                .eq(AppUser::getUsername, dto.getUsername()));
-        if (user == null) {
-            return Result.error("用户名或密码错误");
+        log.info("Login attempt: username={}", dto.getUsername());
+        try {
+            AppUser user = this.getOne(new LambdaQueryWrapper<AppUser>()
+                    .eq(AppUser::getUsername, dto.getUsername()));
+            if (user == null) {
+                log.warn("User not found: username={}", dto.getUsername());
+                return Result.error("用户名或密码错误");
+            }
+            log.info("User found: id={}, username={}, passwordLength={}", user.getId(), user.getUsername(), user.getPassword() != null ? user.getPassword().length() : 0);
+            if (!passwordEncoder.matches(dto.getPassword(), user.getPassword())) {
+                log.warn("Password mismatch for user: {}", dto.getUsername());
+                return Result.error("用户名或密码错误");
+            }
+            if (user.getStatus() == 0) {
+                log.warn("User disabled: {}", dto.getUsername());
+                return Result.error("账号已被禁用");
+            }
+
+            user.setLastLoginTime(LocalDateTime.now());
+            boolean updateResult = this.updateById(user);
+            log.info("Update last login time: {}", updateResult);
+
+            String token = jwtUtil.generateToken(user.getId(), user.getUsername(), 0);
+            log.info("Token generated successfully for user: {}", dto.getUsername());
+
+            Map<String, Object> data = new HashMap<>();
+            data.put("token", token);
+            data.put("userId", user.getId());
+            data.put("username", user.getUsername());
+            data.put("realName", user.getRealName());
+            data.put("role", 0);
+
+            log.info("Login successful: username={}", dto.getUsername());
+            return Result.success("登录成功", data);
+        } catch (Exception e) {
+            log.error("Login error: username={}", dto.getUsername(), e);
+            throw e;
         }
-        if (!passwordEncoder.matches(dto.getPassword(), user.getPassword())) {
-            return Result.error("用户名或密码错误");
-        }
-        if (user.getStatus() == 0) {
-            return Result.error("账号已被禁用");
-        }
-
-        user.setLastLoginTime(LocalDateTime.now());
-        this.updateById(user);
-
-        String token = jwtUtil.generateToken(user.getId(), user.getUsername(), 0);
-
-        Map<String, Object> data = new HashMap<>();
-        data.put("token", token);
-        data.put("userId", user.getId());
-        data.put("username", user.getUsername());
-        data.put("realName", user.getRealName());
-        data.put("role", 0);
-
-        return Result.success("登录成功", data);
     }
 
     @Override

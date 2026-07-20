@@ -72,6 +72,8 @@ export const sendAppMessageToAdmin = (data) => request.post('/message/app-user/s
 // ===== 用药管理 =====
 export const getMedicationPlansByElderlyId = (elderlyId) => request.get(`/medication-plan/elderly/${elderlyId}`)
 export const getMedicationRecordsByElderlyId = (elderlyId) => request.get(`/medication-record/elderly/${elderlyId}`)
+export const getUserMedicationPlans = () => request.get('/medication-plan/user/list')
+export const getUserMedicationRecords = () => request.get('/medication-record/user/list')
 
 // ===== 紧急呼叫 =====
 export const createEmergencyCall = (data) => request.post('/emergency-call', data)
@@ -87,6 +89,7 @@ export const cancelActivitySignup = (id) => request.put(`/activity-signup/cancel
 
 // ===== 费用账单 =====
 export const getFeeBillsByElderlyId = (elderlyId) => request.get(`/fee-bill/elderly/${elderlyId}`)
+export const getUserFeeBills = () => request.get('/fee-bill/user/list')
 
 // ===== 支付管理 =====
 export const getPaymentsByElderlyId = (elderlyId) => request.get(`/payment/elderly/${elderlyId}`)

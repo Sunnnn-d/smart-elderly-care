@@ -77,7 +77,7 @@
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { getMedicationPlansByElderlyId, getMedicationRecordsByElderlyId } from '../api'
+import { getUserMedicationPlans, getUserMedicationRecords } from '../api'
 import { useUserStore } from '../stores/user'
 import { ElMessage } from 'element-plus'
 import { FirstAidKit, Clock, Calendar, UserFilled, Medal, InfoFilled } from '@element-plus/icons-vue'
@@ -94,16 +94,11 @@ const loadData = async () => {
     router.push('/login')
     return
   }
-  if (!userStore.userInfo?.id) {
-    console.warn('用户信息未加载完成')
-    ElMessage.warning('用户信息加载中，请稍候')
-    return
-  }
   loading.value = true
   try {
     const [plansRes, recordsRes] = await Promise.all([
-      getMedicationPlansByElderlyId(userStore.userInfo.id),
-      getMedicationRecordsByElderlyId(userStore.userInfo.id)
+      getUserMedicationPlans(),
+      getUserMedicationRecords()
     ])
     if (!isMounted.value) return
     plans.value = plansRes.data || []

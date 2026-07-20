@@ -34,6 +34,8 @@ public class AppUser {
 
     private String address;
 
+    private Long elderlyId;
+
     private String emergencyContact;
 
     private String emergencyPhone;
