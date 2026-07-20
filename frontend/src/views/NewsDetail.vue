@@ -118,4 +118,40 @@ onUnmounted(() => {
     border-radius: 8px;
   }
 }
+
+@media (max-width: 768px) {
+  .detail-container {
+    padding: 24px 16px;
+  }
+  
+  .back-btn {
+    margin-bottom: 16px;
+    font-size: 0.9rem;
+  }
+  
+  .detail-content {
+    padding: 24px 20px;
+  }
+  
+  .detail-header {
+    margin-bottom: 24px;
+    padding-bottom: 16px;
+    
+    h1 {
+      font-size: 1.4rem !important;
+      margin: 12px 0;
+    }
+    
+    .detail-meta {
+      gap: 16px;
+      font-size: 0.85rem;
+      flex-wrap: wrap;
+    }
+  }
+  
+  .detail-body {
+    font-size: 1rem;
+    line-height: 1.8;
+  }
+}
 </style>

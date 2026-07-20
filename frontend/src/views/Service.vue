@@ -21,7 +21,7 @@
         <div v-for="item in filteredServices" :key="item.id" class="service-item-card">
           <div class="service-image">
             <div class="image-placeholder">
-              <el-icon :size="64" color="#FF8C00"><component :is="getServiceIcon(item.category)" /></el-icon>
+              <el-icon :size="64" color="#FF8C00"><component :is="iconComponentMap[getServiceIcon(item.category)]" /></el-icon>
             </div>
           </div>
           <div class="service-detail">
@@ -53,13 +53,13 @@
     <!-- 预约对话框 -->
     <el-dialog v-model="dialogVisible" title="预约服务" width="520px" destroy-on-close>
       <div class="appointment-service-info">
-        <el-icon :size="32" color="#FF8C00"><component :is="getIcon(currentService?.category)" /></el-icon>
+        <el-icon :size="32" color="#FF8C00"><component :is="iconComponentMap[getServiceIcon(currentService?.category)]" /></el-icon>
         <div>
           <div class="service-name">{{ currentService?.name }}</div>
           <div class="service-price">¥{{ currentService?.price }}/{{ currentService?.unit }}</div>
         </div>
       </div>
-      <el-form ref="formRef" :model="form" :rules="rules" size="large" label-width="100px">
+      <el-form ref="formRef" :model="form" :rules="rules" size="large" label-width="105px">
         <el-form-item label="老人姓名" prop="elderlyName">
           <el-input v-model="form.elderlyName" placeholder="请输入老人姓名" />
         </el-form-item>
@@ -91,6 +91,16 @@ import { getServiceItems, createAppointment } from '../api'
 import { useUserStore } from '../stores/user'
 import { getServiceIcon } from '../utils'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { ShoppingCart, Bell, FirstAidKit, Edit, UserFilled, Document, Clock } from '@element-plus/icons-vue'
+
+const iconComponentMap = {
+  ShoppingCart,
+  Bell,
+  FirstAidKit,
+  Edit,
+  UserFilled,
+  Document
+}
 
 const route = useRoute()
 const router = useRouter()
@@ -278,7 +288,64 @@ onUnmounted(() => {
 }
 
 @media (max-width: 768px) {
-  .service-item-card { flex-direction: column; gap: 16px; }
-  .service-image .image-placeholder { width: 100%; height: 120px; }
+  .page-banner {
+    padding: 40px 16px;
+    h1 { font-size: 1.6rem !important; }
+    p { font-size: 1rem !important; }
+  }
+  
+  .service-container {
+    padding: 24px 16px;
+  }
+  
+  .category-filter {
+    margin-bottom: 20px;
+  }
+  
+  .service-list {
+    gap: 16px;
+  }
+  
+  .service-item-card { 
+    flex-direction: column; 
+    gap: 16px;
+    padding: 20px;
+  }
+  
+  .service-image .image-placeholder { 
+    width: 100%; 
+    height: 100px; 
+  }
+  
+  .service-detail {
+    h3 { font-size: 1.2rem !important; }
+    .desc { font-size: 0.9rem !important; }
+  }
+  
+  .service-bottom {
+    .price-info .price { font-size: 1.6rem !important; }
+  }
+  
+  .appointment-service-info {
+    flex-direction: row;
+    align-items: center;
+    padding: 12px;
+    gap: 12px;
+    
+    .service-name { font-size: 0.95rem !important; }
+    .service-price { font-size: 0.95rem !important; }
+  }
+  
+  :deep(.el-dialog__body) {
+    padding: 20px !important;
+  }
+  
+  :deep(.el-form-item) {
+    margin-bottom: 16px !important;
+  }
+  
+  :deep(.el-form-item__label) {
+    font-size: 0.9rem !important;
+  }
 }
 </style>

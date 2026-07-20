@@ -36,13 +36,20 @@
             <el-tag :type="row.status === 1 ? 'success' : 'info'">{{ row.status === 1 ? '启用' : '停用' }}</el-tag>
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="180" fixed="right">
+        <el-table-column label="操作" width="100" fixed="right">
           <template #default="{ row }">
-            <el-button text type="primary" @click="handleItemDetail(row)">详情</el-button>
-            <el-button text type="warning" @click="handleEditItem(row)">编辑</el-button>
-            <el-button text :type="row.status === 1 ? 'danger' : 'success'" @click="toggleItemStatus(row)">
-              {{ row.status === 1 ? '停用' : '启用' }}
-            </el-button>
+            <el-dropdown trigger="click" @command="(cmd) => handleCommand(cmd, row)">
+              <el-button text type="primary">
+                操作<el-icon class="el-icon--right"><ArrowDown /></el-icon>
+              </el-button>
+              <template #dropdown>
+                <el-dropdown-menu>
+                  <el-dropdown-item command="detail">详情</el-dropdown-item>
+                  <el-dropdown-item command="edit">编辑</el-dropdown-item>
+                  <el-dropdown-item command="toggleStatus">{{ row.status === 1 ? '停用' : '启用' }}</el-dropdown-item>
+                </el-dropdown-menu>
+              </template>
+            </el-dropdown>
           </template>
         </el-table-column>
       </el-table>
@@ -189,6 +196,7 @@
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
+import { ArrowDown } from '@element-plus/icons-vue'
 import {
   getFeeItemList, addFeeItem, updateFeeItem,
   getFeeBillList, addFeeBill, updateFeeBill,
@@ -269,6 +277,15 @@ const handleEditItem = (row) => {
 const handleItemDetail = (row) => {
   Object.assign(itemForm, row)
   itemDialogVisible.value = true
+}
+
+const handleCommand = (cmd, row) => {
+  const actions = {
+    detail: handleItemDetail,
+    edit: handleEditItem,
+    toggleStatus: toggleItemStatus
+  }
+  actions[cmd]?.(row)
 }
 
 const toggleItemStatus = async (row) => {

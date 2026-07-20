@@ -32,13 +32,20 @@
           </template>
         </el-table-column>
         <el-table-column prop="remark" label="备注" show-overflow-tooltip />
-        <el-table-column label="操作" width="200" fixed="right">
+        <el-table-column label="操作" width="100" fixed="right">
           <template #default="{ row }">
-            <el-button text type="primary" @click="handlePlanDetail(row)">详情</el-button>
-            <el-button text type="warning" @click="handleEditPlan(row)">编辑</el-button>
-            <el-button text :type="row.status === 1 ? 'danger' : 'success'" @click="togglePlanStatus(row)">
-              {{ row.status === 1 ? '停用' : '启用' }}
-            </el-button>
+            <el-dropdown trigger="click" @command="(cmd) => handlePlanCommand(cmd, row)">
+              <el-button text type="primary">
+                操作<el-icon class="el-icon--right"><ArrowDown /></el-icon>
+              </el-button>
+              <template #dropdown>
+                <el-dropdown-menu>
+                  <el-dropdown-item command="detail">详情</el-dropdown-item>
+                  <el-dropdown-item command="edit">编辑</el-dropdown-item>
+                  <el-dropdown-item command="toggleStatus">{{ row.status === 1 ? '停用' : '启用' }}</el-dropdown-item>
+                </el-dropdown-menu>
+              </template>
+            </el-dropdown>
           </template>
         </el-table-column>
       </el-table>
@@ -209,6 +216,7 @@
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
+import { ArrowDown } from '@element-plus/icons-vue'
 import {
   getMedicationPlanList, addMedicationPlan, updateMedicationPlan, deleteMedicationPlan,
   getMedicationRecordList, addMedicationRecord, updateMedicationRecord,
@@ -311,6 +319,12 @@ const togglePlanStatus = async (row) => {
   await updateMedicationPlan(row.id, { status: row.status === 1 ? 0 : 1 })
   ElMessage.success(row.status === 1 ? '已停用' : '已启用')
   loadPlanData()
+}
+
+const handlePlanCommand = (cmd, row) => {
+  if (cmd === 'detail') handlePlanDetail(row)
+  else if (cmd === 'edit') handleEditPlan(row)
+  else if (cmd === 'toggleStatus') togglePlanStatus(row)
 }
 
 const handlePlanSubmit = async () => {

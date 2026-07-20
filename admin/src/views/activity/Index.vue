@@ -5,15 +5,15 @@
         <div style="display:flex;justify-content:space-between;align-items:center">
           <span style="font-size:1.1rem;font-weight:600">活动管理</span>
           <div style="display:flex;gap:12px">
-            <el-input v-model="query.activityName" placeholder="活动名称" clearable style="width:150px" @clear="loadActivityData" @keyup.enter="loadActivityData" />
-            <el-select v-model="query.activityType" placeholder="活动类型" clearable style="width:130px" @change="loadActivityData">
+            <el-input v-model="activityQuery.activityName" placeholder="活动名称" clearable style="width:150px" @clear="loadActivityData" @keyup.enter="loadActivityData" />
+            <el-select v-model="activityQuery.activityType" placeholder="活动类型" clearable style="width:130px" @change="loadActivityData">
               <el-option label="文化娱乐" value="culture" />
               <el-option label="体育健身" value="sports" />
               <el-option label="健康讲座" value="health" />
               <el-option label="志愿者活动" value="volunteer" />
               <el-option label="其他" value="other" />
             </el-select>
-            <el-select v-model="query.status" placeholder="状态" clearable style="width:120px" @change="loadActivityData">
+            <el-select v-model="activityQuery.status" placeholder="状态" clearable style="width:120px" @change="loadActivityData">
               <el-option label="未发布" :value="0" />
               <el-option label="报名中" :value="1" />
               <el-option label="进行中" :value="2" />
@@ -44,12 +44,21 @@
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="240" fixed="right">
+        <el-table-column label="操作" width="100" fixed="right">
           <template #default="{ row }">
-            <el-button text type="primary" @click="handleActivityDetail(row)">详情</el-button>
-            <el-button text type="warning" @click="handleEditActivity(row)">编辑</el-button>
-            <el-button v-if="row.status === 0" text type="success" @click="handlePublish(row)">发布</el-button>
-            <el-button v-if="row.status === 1 || row.status === 2" text type="danger" @click="handleClose(row)">结束</el-button>
+            <el-dropdown trigger="click" @command="(cmd) => handleActivityCommand(cmd, row)">
+              <el-button text type="primary">
+                操作<el-icon class="el-icon--right"><ArrowDown /></el-icon>
+              </el-button>
+              <template #dropdown>
+                <el-dropdown-menu>
+                  <el-dropdown-item command="detail">详情</el-dropdown-item>
+                  <el-dropdown-item command="edit">编辑</el-dropdown-item>
+                  <el-dropdown-item v-if="row.status === 0" command="publish">发布</el-dropdown-item>
+                  <el-dropdown-item v-if="row.status === 1 || row.status === 2" command="close">结束</el-dropdown-item>
+                </el-dropdown-menu>
+              </template>
+            </el-dropdown>
           </template>
         </el-table-column>
       </el-table>
@@ -101,11 +110,20 @@
           <template #default="{ row }">{{ row.signInTime || '-' }}</template>
         </el-table-column>
         <el-table-column prop="remark" label="备注" show-overflow-tooltip />
-        <el-table-column label="操作" width="220" fixed="right">
+        <el-table-column label="操作" width="100" fixed="right">
           <template #default="{ row }">
-            <el-button v-if="row.status === 0" text type="success" @click="handleApprove(row)">审核通过</el-button>
-            <el-button v-if="row.status === 1" text type="primary" @click="handleSignIn(row)">签到</el-button>
-            <el-button v-if="row.status < 2" text type="danger" @click="handleCancelSignup(row)">取消报名</el-button>
+            <el-dropdown trigger="click" @command="(cmd) => handleSignupCommand(cmd, row)">
+              <el-button text type="primary">
+                操作<el-icon class="el-icon--right"><ArrowDown /></el-icon>
+              </el-button>
+              <template #dropdown>
+                <el-dropdown-menu>
+                  <el-dropdown-item v-if="row.status === 0" command="approve">审核通过</el-dropdown-item>
+                  <el-dropdown-item v-if="row.status === 1" command="signin">签到</el-dropdown-item>
+                  <el-dropdown-item v-if="row.status < 2" command="cancel">取消报名</el-dropdown-item>
+                </el-dropdown-menu>
+              </template>
+            </el-dropdown>
           </template>
         </el-table-column>
       </el-table>
@@ -188,6 +206,7 @@
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { ArrowDown } from '@element-plus/icons-vue'
 import {
   getActivityList, addActivity, updateActivity, deleteActivity, publishActivity, closeActivity, getAllActivities,
   getActivitySignupList, approveActivitySignup, signInActivity, cancelActivitySignup
@@ -305,6 +324,23 @@ const handleCancelSignup = async (row) => {
   await cancelActivitySignup(row.id)
   ElMessage.success('已取消报名')
   loadSignupData()
+}
+
+const handleActivityCommand = (cmd, row) => {
+  switch (cmd) {
+    case 'detail': handleActivityDetail(row); break
+    case 'edit': handleEditActivity(row); break
+    case 'publish': handlePublish(row); break
+    case 'close': handleClose(row); break
+  }
+}
+
+const handleSignupCommand = (cmd, row) => {
+  switch (cmd) {
+    case 'approve': handleApprove(row); break
+    case 'signin': handleSignIn(row); break
+    case 'cancel': handleCancelSignup(row); break
+  }
 }
 
 onMounted(() => { loadActivityData(); loadSignupData(); loadAllActivities() })

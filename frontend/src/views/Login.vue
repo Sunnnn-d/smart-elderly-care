@@ -292,18 +292,42 @@ onUnmounted(() => {
 }
 
 @media (max-width: 768px) {
+  .login-page {
+    padding: 16px;
+  }
+  
+  .login-container {
+    max-width: 100%;
+    width: 100%;
+    border-radius: 20px;
+  }
+
   .login-left {
     display: none;
   }
 
   .login-right {
-    padding: 40px 24px;
+    padding: 32px 20px;
+    width: 100%;
 
     .login-form-wrap {
+      max-width: 100%;
+      
       h2 {
-        font-size: 1.6rem;
+        font-size: 1.5rem;
+        text-align: center;
+      }
+      
+      .login-tip {
+        text-align: center;
+        font-size: 0.9rem;
+        margin-bottom: 30px;
       }
     }
+  }
+  
+  .login-footer {
+    font-size: 0.9rem;
   }
 }
 </style>

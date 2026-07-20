@@ -95,11 +95,20 @@
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="220" fixed="right">
+        <el-table-column label="操作" width="100" fixed="right">
           <template #default="{ row }">
-            <el-button text type="primary" @click="handleBedDetail(row)">详情</el-button>
-            <el-button v-if="row.status === 0" text type="success" @click="handleCheckIn(row)">入住</el-button>
-            <el-button v-if="row.status === 1" text type="danger" @click="handleCheckOut(row)">离院</el-button>
+            <el-dropdown trigger="click" @command="(cmd) => handleCommand(cmd, row)">
+              <el-button text type="primary">
+                操作<el-icon class="el-icon--right"><ArrowDown /></el-icon>
+              </el-button>
+              <template #dropdown>
+                <el-dropdown-menu>
+                  <el-dropdown-item command="detail">详情</el-dropdown-item>
+                  <el-dropdown-item v-if="row.status === 0" command="checkIn">入住</el-dropdown-item>
+                  <el-dropdown-item v-if="row.status === 1" command="checkOut">离院</el-dropdown-item>
+                </el-dropdown-menu>
+              </template>
+            </el-dropdown>
           </template>
         </el-table-column>
       </el-table>
@@ -228,6 +237,7 @@
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { ArrowDown } from '@element-plus/icons-vue'
 import {
   getRoomList, addRoom, updateRoom, getAllRooms,
   getBedList, addBed, updateBed, checkInBed, checkOutBed,
@@ -356,6 +366,15 @@ const handleAddBed = () => {
 const handleBedDetail = (row) => {
   Object.assign(bedForm, row)
   bedDialogVisible.value = true
+}
+
+const handleCommand = (cmd, row) => {
+  const actions = {
+    detail: handleBedDetail,
+    checkIn: handleCheckIn,
+    checkOut: handleCheckOut
+  }
+  actions[cmd]?.(row)
 }
 
 const handleBedSubmit = async () => {

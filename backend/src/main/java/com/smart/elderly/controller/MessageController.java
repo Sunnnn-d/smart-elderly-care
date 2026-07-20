@@ -116,6 +116,19 @@ public class MessageController {
         return Result.success(types);
     }
 
+    /**
+     * 客户端用户发送消息给管理员
+     */
+    @PostMapping("/app-user/send-to-admin")
+    public Result<Void> sendMessageToAdmin(HttpServletRequest request, @RequestBody Map<String, Object> params) {
+        Long userId = jwtUtil.getUserIdFromRequest(request);
+        String type = (String) params.get("type");
+        String title = (String) params.get("title");
+        String content = (String) params.get("content");
+        messageService.sendMessageToAdmin(type, title, content);
+        return Result.success();
+    }
+
     // ==================== 管理员消息接口 ====================
 
     /**

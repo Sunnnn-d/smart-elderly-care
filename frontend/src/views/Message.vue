@@ -7,6 +7,10 @@
           <el-icon><Finished /></el-icon>
           全部标为已读
         </el-button>
+        <el-button type="success" @click="showSendDialog = true">
+          <el-icon><ChatDotRound /></el-icon>
+          发送消息
+        </el-button>
       </div>
     </div>
 
@@ -56,16 +60,38 @@
       @current-change="handlePageChange"
       layout="total, prev, pager, next, jumper"
     />
+
+    <el-dialog v-model="showSendDialog" title="发送消息给管理员" width="480px" :close-on-click-modal="false">
+      <el-form :model="sendForm" label-width="80px">
+        <el-form-item label="消息类型">
+          <el-select v-model="sendForm.type" placeholder="请选择消息类型">
+            <el-option label="服务提醒" value="service" />
+            <el-option label="订单消息" value="order" />
+            <el-option label="其他" value="other" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="消息标题">
+          <el-input v-model="sendForm.title" placeholder="请输入消息标题" />
+        </el-form-item>
+        <el-form-item label="消息内容">
+          <el-input v-model="sendForm.content" type="textarea" :rows="4" placeholder="请输入消息内容" />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="showSendDialog = false">取消</el-button>
+        <el-button type="primary" @click="handleSendMessage" :loading="sendLoading">发送</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { getAppUserMessages, getAppUserUnreadCount, markAppUserMessageRead, markAllAppUserMessagesRead, deleteAppUserMessage } from '../api'
+import { getAppUserMessages, getAppUserUnreadCount, markAppUserMessageRead, markAllAppUserMessagesRead, deleteAppUserMessage, sendAppMessageToAdmin } from '../api'
 import { cancelAllRequests } from '../api/request'
 import { ElMessage } from 'element-plus'
-import { Finished, ShoppingCart, Bell, InfoFilled } from '@element-plus/icons-vue'
+import { Finished, ShoppingCart, Bell, InfoFilled, ChatDotRound } from '@element-plus/icons-vue'
 
 const router = useRouter()
 const isMounted = ref(false)
@@ -74,10 +100,18 @@ const pageNum = ref(1)
 const pageSize = ref(20)
 const loading = ref(false)
 const markAllLoading = ref(false)
+const sendLoading = ref(false)
+const showSendDialog = ref(false)
 const messages = ref([])
 const total = ref(0)
 const unreadCount = ref(0)
 const totalUnread = ref(0)
+
+const sendForm = ref({
+  type: 'service',
+  title: '',
+  content: ''
+})
 
 const filteredMessages = computed(() => {
   if (activeTab.value === 'unread') {
@@ -163,6 +197,32 @@ const deleteMessage = async (messageId) => {
     ElMessage.success('删除成功')
   } catch (e) {
     ElMessage.error('删除失败')
+  }
+}
+
+const handleSendMessage = async () => {
+  if (!sendForm.value.title.trim()) {
+    ElMessage.warning('请输入消息标题')
+    return
+  }
+  if (!sendForm.value.content.trim()) {
+    ElMessage.warning('请输入消息内容')
+    return
+  }
+  sendLoading.value = true
+  try {
+    await sendAppMessageToAdmin({
+      type: sendForm.value.type,
+      title: sendForm.value.title.trim(),
+      content: sendForm.value.content.trim()
+    })
+    showSendDialog.value = false
+    sendForm.value = { type: 'service', title: '', content: '' }
+    ElMessage.success('消息发送成功，管理员会尽快回复您')
+  } catch (e) {
+    ElMessage.error('发送失败')
+  } finally {
+    sendLoading.value = false
   }
 }
 
@@ -315,5 +375,72 @@ onUnmounted(() => {
 .el-pagination {
   margin-top: 20px;
   text-align: center;
+}
+
+@media (max-width: 768px) {
+  .message-page {
+    padding: 20px 16px;
+  }
+  
+  .page-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 16px;
+    
+    h2 { font-size: 1.4rem; }
+  }
+  
+  .header-actions {
+    width: 100%;
+  }
+  
+  .message-tabs {
+    margin-bottom: 16px;
+  }
+  
+  .message-item {
+    padding: 12px;
+    flex-wrap: wrap;
+  }
+  
+  .message-icon {
+    margin-right: 12px;
+    font-size: 20px;
+  }
+  
+  .message-header {
+    margin-bottom: 6px;
+    
+    .message-time {
+      font-size: 0.8rem;
+    }
+  }
+  
+  .message-body {
+    font-size: 0.9rem;
+    line-height: 1.5;
+  }
+  
+  .message-order {
+    margin-top: 6px;
+    
+    .order-id {
+      font-size: 0.8rem;
+    }
+  }
+  
+  .message-actions {
+    margin-left: 0;
+    margin-top: 12px;
+    flex-direction: row;
+    gap: 10px;
+    width: 100%;
+    justify-content: flex-end;
+  }
+  
+  .el-pagination {
+    margin-top: 16px;
+  }
 }
 </style>

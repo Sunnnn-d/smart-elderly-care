@@ -148,9 +148,14 @@ const loadBills = async () => {
     router.push('/login')
     return
   }
+  if (!userStore.userInfo?.id) {
+    console.warn('用户信息未加载完成')
+    ElMessage.warning('用户信息加载中，请稍候')
+    return
+  }
   loading.value = true
   try {
-    const res = await getFeeBillsByElderlyId(userStore.userInfo?.id)
+    const res = await getFeeBillsByElderlyId(userStore.userInfo.id)
     if (!isMounted.value) return
     bills.value = res.data || []
     total.value = bills.value.length
@@ -360,6 +365,61 @@ onUnmounted(() => {
 }
 
 @media (max-width: 768px) {
-  .bill-amount { flex-direction: column; gap: 16px; }
+  .bills-page {
+    padding: 20px 16px;
+  }
+  
+  .page-header {
+    margin-bottom: 20px;
+    
+    h2 { font-size: 1.4rem; }
+  }
+  
+  .bills-container {
+    gap: 16px;
+  }
+  
+  .bill-header {
+    padding: 12px 16px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    
+    .bill-no { font-size: 0.85rem; }
+  }
+  
+  .bill-content {
+    padding: 16px;
+  }
+  
+  .bill-month {
+    font-size: 1rem !important;
+    margin-bottom: 16px;
+  }
+  
+  .bill-amount { 
+    flex-direction: column; 
+    gap: 12px; 
+    margin-bottom: 12px;
+  }
+  
+  .bill-due {
+    font-size: 0.85rem;
+    margin-bottom: 8px;
+  }
+  
+  .bill-remark {
+    font-size: 0.85rem;
+    padding: 10px;
+  }
+  
+  .bill-footer {
+    padding: 12px 16px;
+    justify-content: flex-start;
+  }
+  
+  .el-pagination {
+    margin-top: 20px;
+  }
 }
 </style>

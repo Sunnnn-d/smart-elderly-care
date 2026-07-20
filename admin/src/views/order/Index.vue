@@ -36,12 +36,21 @@
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="240" fixed="right">
+        <el-table-column label="操作" width="100" fixed="right">
           <template #default="{ row }">
-            <el-button text type="primary" @click="handleDetail(row)">详情</el-button>
-            <el-button v-if="row.status === 0" text type="warning" @click="handleDispatch(row)">派单</el-button>
-            <el-button v-if="row.status === 1" text type="success" @click="handleComplete(row)">完成</el-button>
-            <el-button v-if="row.status < 2" text type="danger" @click="handleCancel(row)">取消</el-button>
+            <el-dropdown trigger="click" @command="(cmd) => handleCommand(cmd, row)">
+              <el-button text type="primary">
+                操作<el-icon class="el-icon--right"><ArrowDown /></el-icon>
+              </el-button>
+              <template #dropdown>
+                <el-dropdown-menu>
+                  <el-dropdown-item command="detail">详情</el-dropdown-item>
+                  <el-dropdown-item v-if="row.status === 0" command="dispatch">派单</el-dropdown-item>
+                  <el-dropdown-item v-if="row.status === 1" command="complete">完成</el-dropdown-item>
+                  <el-dropdown-item v-if="row.status < 2" command="cancel">取消</el-dropdown-item>
+                </el-dropdown-menu>
+              </template>
+            </el-dropdown>
           </template>
         </el-table-column>
       </el-table>
@@ -104,6 +113,7 @@
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { ArrowDown } from '@element-plus/icons-vue'
 import { getOrderList, dispatchOrder, completeOrder, cancelOrder, getNurseList } from '../../api'
 
 const loading = ref(false)
@@ -172,6 +182,15 @@ const getCancelTypeText = (cancelType) => {
     timeout: '超时自动取消'
   }
   return texts[cancelType] || '未知'
+}
+
+const handleCommand = (cmd, row) => {
+  switch (cmd) {
+    case 'detail': handleDetail(row); break
+    case 'dispatch': handleDispatch(row); break
+    case 'complete': handleComplete(row); break
+    case 'cancel': handleCancel(row); break
+  }
 }
 
 onMounted(() => loadData())

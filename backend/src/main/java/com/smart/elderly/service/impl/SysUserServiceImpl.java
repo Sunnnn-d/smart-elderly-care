@@ -232,9 +232,9 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         if (user == null) {
             return Result.error("用户不存在");
         }
-        user.setPassword(passwordEncoder.encode("123456"));
+        user.setPassword(passwordEncoder.encode("a123456"));
         this.baseMapper.updateById(user);
-        return Result.success("密码已重置为 123456");
+        return Result.success("密码已重置为 a123456");
     }
 
     @Override

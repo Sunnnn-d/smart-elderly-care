@@ -330,18 +330,42 @@ const handleRegister = async () => {
 }
 
 @media (max-width: 768px) {
+  .register-page {
+    padding: 16px;
+  }
+  
+  .register-container {
+    max-width: 100%;
+    width: 100%;
+    border-radius: 20px;
+  }
+
   .register-left {
     display: none;
   }
 
   .register-right {
-    padding: 40px 24px;
+    padding: 32px 20px;
+    width: 100%;
 
     .register-form-wrap {
+      max-width: 100%;
+      
       h2 {
-        font-size: 1.6rem;
+        font-size: 1.5rem;
+        text-align: center;
+      }
+      
+      .register-tip {
+        text-align: center;
+        font-size: 0.9rem;
+        margin-bottom: 24px;
       }
     }
+  }
+  
+  .register-footer {
+    font-size: 0.9rem;
   }
 }
 </style>

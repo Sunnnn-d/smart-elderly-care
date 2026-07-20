@@ -67,6 +67,7 @@ export const getAppUserUnreadCount = () => request.get('/message/app-user/unread
 export const markAppUserMessageRead = (messageId) => request.put(`/message/app-user/${messageId}/read`)
 export const markAllAppUserMessagesRead = () => request.put('/message/app-user/all/read')
 export const deleteAppUserMessage = (messageId) => request.delete(`/message/app-user/${messageId}`)
+export const sendAppMessageToAdmin = (data) => request.post('/message/app-user/send-to-admin', data)
 
 // ===== 用药管理 =====
 export const getMedicationPlansByElderlyId = (elderlyId) => request.get(`/medication-plan/elderly/${elderlyId}`)

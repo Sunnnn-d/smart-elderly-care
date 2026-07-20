@@ -179,15 +179,24 @@ public class ServiceOrderServiceImpl extends ServiceImpl<ServiceOrderMapper, Ser
      * 批量处理超时订单
      */
     public void processTimeoutOrders() {
-        // 查询创建时间超过30分钟且状态为待派单的订单
         LocalDateTime timeoutTime = LocalDateTime.now().minusMinutes(30);
+        log.info("开始查询超时订单，超时时间: {}", timeoutTime);
+        
         LambdaQueryWrapper<ServiceOrder> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(ServiceOrder::getStatus, 0)
                .lt(ServiceOrder::getCreateTime, timeoutTime);
         
-        this.list(wrapper).forEach(order -> {
-            timeoutCancelOrder(order.getId());
-        });
+        java.util.List<ServiceOrder> timeoutOrders = this.list(wrapper);
+        log.info("查询到超时订单数量: {}", timeoutOrders.size());
+        
+        for (ServiceOrder order : timeoutOrders) {
+            try {
+                timeoutCancelOrder(order.getId());
+                log.info("超时订单取消成功，订单编号: {}", order.getOrderNo());
+            } catch (Exception e) {
+                log.error("超时订单取消失败，订单编号: {}, 错误: {}", order.getOrderNo(), e.getMessage(), e);
+            }
+        }
     }
 
     /**

@@ -94,11 +94,16 @@ const loadData = async () => {
     router.push('/login')
     return
   }
+  if (!userStore.userInfo?.id) {
+    console.warn('用户信息未加载完成')
+    ElMessage.warning('用户信息加载中，请稍候')
+    return
+  }
   loading.value = true
   try {
     const [plansRes, recordsRes] = await Promise.all([
-      getMedicationPlansByElderlyId(userStore.userInfo?.id),
-      getMedicationRecordsByElderlyId(userStore.userInfo?.id)
+      getMedicationPlansByElderlyId(userStore.userInfo.id),
+      getMedicationRecordsByElderlyId(userStore.userInfo.id)
     ])
     if (!isMounted.value) return
     plans.value = plansRes.data || []
@@ -202,6 +207,51 @@ onUnmounted(() => {
 }
 
 @media (max-width: 768px) {
-  .plan-detail { flex-direction: column; gap: 12px; }
+  .medication-page {
+    padding: 20px 16px;
+  }
+  
+  .page-header {
+    margin-bottom: 20px;
+    
+    h2 { font-size: 1.4rem; }
+  }
+  
+  .medication-container {
+    gap: 16px;
+  }
+  
+  .plan-item {
+    padding: 16px;
+    margin-bottom: 12px;
+  }
+  
+  .plan-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    margin-bottom: 12px;
+    
+    .medicine-name { font-size: 1.1rem !important; }
+  }
+  
+  .plan-detail { 
+    flex-direction: column; 
+    gap: 10px; 
+  }
+  
+  .plan-remark {
+    font-size: 0.85rem;
+    padding-top: 12px;
+    margin-top: 12px;
+  }
+  
+  :deep(.el-card__header) {
+    padding: 16px !important;
+  }
+  
+  :deep(.el-card__body) {
+    padding: 16px !important;
+  }
 }
 </style>

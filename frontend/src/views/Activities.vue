@@ -7,75 +7,75 @@
 
     <div class="activities-container">
       <div v-loading="loading" class="activity-list">
-        <template>
-          <el-empty v-if="activities.length === 0" description="暂无活动" />
-          <div v-for="activity in activities" :key="activity?.id" v-if="activity" class="activity-card">
-          <div class="activity-header">
-            <div class="activity-type">
-              <el-tag :type="getActivityTypeTag(activity?.activityType)">
-                {{ getActivityTypeText(activity?.activityType) }}
+        <template v-for="activity in activities" :key="activity?.id">
+          <div v-if="activity" class="activity-card">
+            <div class="activity-header">
+              <div class="activity-type">
+                <el-tag :type="getActivityTypeTag(activity?.activityType)">
+                  {{ getActivityTypeText(activity?.activityType) }}
+                </el-tag>
+              </div>
+              <el-tag :type="getActivityStatusTag(activity?.status)">
+                {{ getActivityStatusText(activity?.status) }}
               </el-tag>
             </div>
-            <el-tag :type="getActivityStatusTag(activity?.status)">
-              {{ getActivityStatusText(activity?.status) }}
-            </el-tag>
+            <h3>{{ activity?.activityName || '-' }}</h3>
+            <p class="activity-desc">{{ activity?.description || '-' }}</p>
+            <div class="activity-info">
+              <div class="info-item">
+                <el-icon><Calendar /></el-icon>
+                <span>{{ activity?.startTime || '-' }} ~ {{ activity?.endTime || '-' }}</span>
+              </div>
+              <div class="info-item">
+                <el-icon><Location /></el-icon>
+                <span>{{ activity?.location || '-' }}</span>
+              </div>
+              <div class="info-item">
+                <el-icon><User /></el-icon>
+                <span>{{ activity?.currentParticipants || 0 }}/{{ activity?.maxParticipants || 0 }}人</span>
+              </div>
+              <div class="info-item">
+                <el-icon><UserFilled /></el-icon>
+                <span>组织者：{{ activity?.organizerName || '-' }}</span>
+              </div>
+            </div>
+            <div class="activity-footer">
+              <el-button 
+                v-if="activity?.status === 1" 
+                type="primary" 
+                round 
+                :disabled="hasSignedUp(activity?.id)"
+                @click="handleSignup(activity)"
+              >
+                {{ hasSignedUp(activity?.id) ? '已报名' : '立即报名' }}
+              </el-button>
+              <el-button 
+                v-if="activity?.status === 2" 
+                type="success" 
+                round 
+                :disabled="hasSignedIn(activity?.id)"
+                @click="handleSignIn(activity)"
+              >
+                {{ hasSignedIn(activity?.id) ? '已签到' : '立即签到' }}
+              </el-button>
+              <el-button 
+                v-if="activity?.status === 3" 
+                disabled 
+                round
+              >
+                活动已结束
+              </el-button>
+              <el-button 
+                v-if="activity?.status === 0" 
+                disabled 
+                round
+              >
+                未发布
+              </el-button>
+            </div>
           </div>
-          <h3>{{ activity?.activityName || '-' }}</h3>
-          <p class="activity-desc">{{ activity?.description || '-' }}</p>
-          <div class="activity-info">
-            <div class="info-item">
-              <el-icon><Calendar /></el-icon>
-              <span>{{ activity?.startTime || '-' }} ~ {{ activity?.endTime || '-' }}</span>
-            </div>
-            <div class="info-item">
-              <el-icon><Location /></el-icon>
-              <span>{{ activity?.location || '-' }}</span>
-            </div>
-            <div class="info-item">
-              <el-icon><User /></el-icon>
-              <span>{{ activity?.currentParticipants || 0 }}/{{ activity?.maxParticipants || 0 }}人</span>
-            </div>
-            <div class="info-item">
-              <el-icon><UserFilled /></el-icon>
-              <span>组织者：{{ activity?.organizerName || '-' }}</span>
-            </div>
-          </div>
-          <div class="activity-footer">
-            <el-button 
-              v-if="activity?.status === 1" 
-              type="primary" 
-              round 
-              :disabled="hasSignedUp(activity?.id)"
-              @click="handleSignup(activity)"
-            >
-              {{ hasSignedUp(activity?.id) ? '已报名' : '立即报名' }}
-            </el-button>
-            <el-button 
-              v-if="activity?.status === 2" 
-              type="success" 
-              round 
-              :disabled="hasSignedIn(activity?.id)"
-              @click="handleSignIn(activity)"
-            >
-              {{ hasSignedIn(activity?.id) ? '已签到' : '立即签到' }}
-            </el-button>
-            <el-button 
-              v-if="activity?.status === 3" 
-              disabled 
-              round
-            >
-              活动已结束
-            </el-button>
-            <el-button 
-              v-if="activity?.status === 0" 
-              disabled 
-              round
-            >
-              未发布
-            </el-button>
-          </div>
-        </div>
         </template>
+        <el-empty v-if="activities.length === 0" description="暂无活动" />
       </div>
     </div>
 
@@ -321,6 +321,42 @@ onUnmounted(() => {
 }
 
 @media (max-width: 768px) {
-  .activity-info { flex-direction: column; gap: 12px; }
+  .page-banner {
+    padding: 40px 16px;
+    h1 { font-size: 1.6rem !important; }
+    p { font-size: 1rem !important; }
+  }
+  
+  .activities-container {
+    padding: 24px 16px;
+  }
+  
+  .activity-list {
+    gap: 16px;
+  }
+  
+  .activity-card {
+    padding: 20px;
+    
+    h3 { font-size: 1.2rem !important; }
+    .activity-desc { font-size: 0.9rem !important; margin-bottom: 16px; }
+  }
+  
+  .activity-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+  
+  .activity-info { 
+    flex-direction: column; 
+    gap: 12px; 
+    margin-bottom: 16px;
+  }
+  
+  .activity-footer {
+    justify-content: flex-start;
+  }
 }
 </style>

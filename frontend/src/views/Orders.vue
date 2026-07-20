@@ -14,8 +14,8 @@
     </div>
 
     <div class="order-list" v-loading="loading">
-      <el-empty v-if="orders.length === 0" description="暂无订单" />
-      <div v-for="order in orders" :key="order.id" class="order-card">
+      <el-empty v-if="filteredOrders.length === 0" description="暂无订单" />
+      <div v-for="order in filteredOrders" :key="order.id" class="order-card">
         <div class="order-header">
           <div class="order-no">订单编号：{{ order.orderNo }}</div>
           <el-tag :type="getStatusType(order.status)">{{ getStatusText(order.status) }}</el-tag>
@@ -359,5 +359,76 @@ onUnmounted(() => {
 .el-pagination {
   margin-top: 30px;
   text-align: center;
+}
+
+@media (max-width: 768px) {
+  .orders-page {
+    padding: 20px 16px;
+  }
+  
+  .page-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+    margin-bottom: 20px;
+    
+    h2 {
+      font-size: 1.4rem;
+    }
+  }
+  
+  .order-list {
+    gap: 16px;
+  }
+  
+  .order-header {
+    padding: 12px 16px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    
+    .order-no {
+      font-size: 0.85rem;
+    }
+  }
+  
+  .order-content {
+    padding: 16px;
+  }
+  
+  .service-info {
+    margin-bottom: 16px;
+    
+    .service-icon {
+      width: 50px;
+      height: 50px;
+    }
+    
+    .service-detail h3 { font-size: 1.1rem !important; }
+    .service-detail .price { font-size: 1.2rem !important; }
+  }
+  
+  .order-meta {
+    gap: 12px;
+    flex-direction: column;
+    
+    .meta-item {
+      font-size: 0.85rem;
+    }
+  }
+  
+  .nurse-info, .cancel-info {
+    font-size: 0.85rem;
+    padding: 10px;
+  }
+  
+  .order-actions {
+    padding: 12px 16px;
+    justify-content: flex-start;
+  }
+  
+  .el-pagination {
+    margin-top: 20px;
+  }
 }
 </style>

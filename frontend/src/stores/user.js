@@ -19,7 +19,11 @@ export const useUserStore = defineStore('user', () => {
   }
 
   const updateUserInfo = (info) => {
-    userInfo.value = { ...userInfo.value, ...info }
+    if (!userInfo.value) {
+      userInfo.value = info
+    } else {
+      userInfo.value = { ...userInfo.value, ...info }
+    }
   }
 
   return {

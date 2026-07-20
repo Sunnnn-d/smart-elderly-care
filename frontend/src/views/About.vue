@@ -194,7 +194,71 @@
 }
 
 @media (max-width: 768px) {
-  .stats-grid { grid-template-columns: repeat(2, 1fr); }
-  .philosophy-grid, .contact-grid { grid-template-columns: 1fr; }
+  .page-banner {
+    padding: 40px 16px;
+    h1 { font-size: 1.6rem !important; }
+    p { font-size: 1rem !important; }
+  }
+  
+  .about-container {
+    padding: 24px 16px;
+  }
+  
+  .about-section {
+    padding: 24px 20px;
+    margin-bottom: 24px;
+    
+    h2 {
+      font-size: 1.3rem !important;
+      margin-bottom: 16px;
+    }
+    
+    p {
+      font-size: 1rem !important;
+      line-height: 1.8;
+    }
+  }
+  
+  .stats-section {
+    margin-bottom: 24px;
+  }
+  
+  .stats-grid { 
+    grid-template-columns: repeat(2, 1fr); 
+    gap: 12px;
+  }
+  
+  .stat-card {
+    padding: 20px 12px;
+    
+    .stat-number { font-size: 1.8rem !important; }
+    .stat-label { font-size: 0.9rem !important; }
+  }
+  
+  .philosophy-grid { 
+    grid-template-columns: 1fr; 
+    gap: 16px;
+  }
+  
+  .philosophy-card {
+    padding: 20px 16px;
+    
+    h3 { font-size: 1.1rem !important; margin: 12px 0 6px; }
+    p { font-size: 0.9rem !important; }
+  }
+  
+  .contact-grid { 
+    grid-template-columns: 1fr; 
+    gap: 12px;
+  }
+  
+  .contact-item {
+    padding: 16px;
+    flex-direction: column;
+    align-items: flex-start;
+    
+    h4 { font-size: 0.95rem !important; }
+    p { font-size: 0.9rem !important; }
+  }
 }
 </style>

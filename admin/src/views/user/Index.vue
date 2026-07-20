@@ -44,11 +44,20 @@
         </el-table-column>
         <el-table-column prop="lastLoginTime" label="最后登录" width="170" />
         <el-table-column prop="createTime" label="创建时间" width="170" />
-        <el-table-column label="操作" width="260" fixed="right">
+        <el-table-column label="操作" width="100" fixed="right">
           <template #default="{ row }">
-            <el-button text type="primary" @click="handleEdit(row)">编辑</el-button>
-            <el-button text type="warning" @click="handleResetPassword(row)">重置密码</el-button>
-            <el-button text type="danger" @click="handleDelete(row)">删除</el-button>
+            <el-dropdown trigger="click" @command="(cmd) => handleCommand(cmd, row)">
+              <el-button text type="primary">
+                操作<el-icon class="el-icon--right"><ArrowDown /></el-icon>
+              </el-button>
+              <template #dropdown>
+                <el-dropdown-menu>
+                  <el-dropdown-item command="edit">编辑</el-dropdown-item>
+                  <el-dropdown-item command="resetPassword">重置密码</el-dropdown-item>
+                  <el-dropdown-item command="delete" divided>删除</el-dropdown-item>
+                </el-dropdown-menu>
+              </template>
+            </el-dropdown>
           </template>
         </el-table-column>
       </el-table>
@@ -113,7 +122,7 @@
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { Search, User, Plus, Delete } from '@element-plus/icons-vue'
+import { Search, User, Plus, Delete, ArrowDown } from '@element-plus/icons-vue'
 import { getUserPage, addUser, updateUser, deleteUser, deleteUserBatch, resetUserPassword } from '../../api'
 
 const loading = ref(false)
@@ -177,6 +186,20 @@ const resetForm = () => {
     status: 1,
     password: ''
   })
+}
+
+const handleCommand = (cmd, row) => {
+  switch (cmd) {
+    case 'edit':
+      handleEdit(row)
+      break
+    case 'resetPassword':
+      handleResetPassword(row)
+      break
+    case 'delete':
+      handleDelete(row)
+      break
+  }
 }
 
 const handleAdd = () => {

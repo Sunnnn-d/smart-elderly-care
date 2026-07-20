@@ -2,9 +2,14 @@
   <div id="app">
     <el-header class="site-header">
       <div class="header-content">
-        <div class="logo" @click="$router.push('/')">
-          <el-icon :size="32" color="#FF8C00"><Sunny /></el-icon>
-          <span class="logo-text">暖夕伴养老</span>
+        <div class="header-left">
+          <div class="logo" @click="$router.push('/')">
+            <el-icon :size="32" color="#FF8C00"><Sunny /></el-icon>
+            <span class="logo-text">暖夕伴养老</span>
+          </div>
+          <div class="mobile-menu-btn" @click="toggleMobileMenu">
+            <el-icon :size="24" color="#333"><Menu /></el-icon>
+          </div>
         </div>
         <el-menu
           :default-active="activeMenu"
@@ -90,6 +95,74 @@
         </div>
       </div>
     </el-header>
+    <div v-if="mobileMenuVisible" class="mobile-menu-overlay" @click="mobileMenuVisible = false"></div>
+    <div v-if="mobileMenuVisible" class="mobile-menu">
+      <div class="mobile-menu-header">
+        <span class="mobile-menu-title">菜单</span>
+        <el-icon class="mobile-menu-close" @click="mobileMenuVisible = false"><Close /></el-icon>
+      </div>
+      <el-menu
+        :default-active="activeMenu"
+        mode="vertical"
+        class="mobile-menu-list"
+        @select="handleMobileMenuSelect"
+      >
+        <el-menu-item index="/">
+          <el-icon><HomeFilled /></el-icon>
+          首页
+        </el-menu-item>
+        <el-menu-item index="/service">
+          <el-icon><Calendar /></el-icon>
+          服务预约
+        </el-menu-item>
+        <el-menu-item index="/news">
+          <el-icon><Document /></el-icon>
+          健康资讯
+        </el-menu-item>
+        <el-menu-item index="/about">
+          <el-icon><InfoFilled /></el-icon>
+          关于我们
+        </el-menu-item>
+        <el-menu-item v-if="userStore.isLogin" index="/orders">
+          <el-icon><ShoppingCart /></el-icon>
+          我的订单
+        </el-menu-item>
+        <el-menu-item v-if="userStore.isLogin" index="/activities">
+          <el-icon><Trophy /></el-icon>
+          活动中心
+        </el-menu-item>
+        <el-menu-item v-if="userStore.isLogin" index="/medication">
+          <el-icon><FirstAidKit /></el-icon>
+          用药管理
+        </el-menu-item>
+        <el-menu-item v-if="userStore.isLogin" index="/bills">
+          <el-icon><Wallet /></el-icon>
+          费用账单
+        </el-menu-item>
+        <el-menu-item v-if="userStore.isLogin" index="/message">
+          <el-icon><Bell /></el-icon>
+          消息中心
+          <el-badge :value="messageStore.appUnreadCount" :hidden="messageStore.appUnreadCount === 0" />
+        </el-menu-item>
+      </el-menu>
+      <div v-if="!userStore.isLogin" class="mobile-menu-login">
+        <el-button type="primary" round @click="handleMobileLogin">
+          <el-icon><User /></el-icon>
+          登录
+        </el-button>
+      </div>
+      <div v-else class="mobile-menu-user">
+        <div class="mobile-user-info">
+          <el-avatar :size="48" :src="userStore.userInfo?.avatar">
+            <User />
+          </el-avatar>
+          <div class="mobile-user-detail">
+            <span class="mobile-user-name">{{ userStore.userInfo?.username }}</span>
+            <span class="mobile-user-logout" @click="handleLogout">退出登录</span>
+          </div>
+        </div>
+      </div>
+    </div>
     <main class="site-main">
       <router-view />
     </main>
@@ -191,13 +264,32 @@ import { useUserStore } from './stores/user'
 import { useMessageStore } from './stores/message'
 import { getAppUserInfo, uploadAppUserAvatar, changeAppUserPassword, changeAppUsername, uploadAppAvatar, changeAppPassword } from './api'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { ShoppingCart, Trophy, FirstAidKit, Wallet, Bell, Edit, Lock, Back, HomeFilled, Calendar, Document, InfoFilled } from '@element-plus/icons-vue'
+import { ShoppingCart, Trophy, FirstAidKit, Wallet, Bell, Edit, Lock, Back, HomeFilled, Calendar, Document, InfoFilled, Menu, Close } from '@element-plus/icons-vue'
 
 const router = useRouter()
 const route = useRoute()
 const userStore = useUserStore()
 const messageStore = useMessageStore()
 const isMounted = ref(false)
+const mobileMenuVisible = ref(false)
+
+const toggleMobileMenu = () => {
+  mobileMenuVisible.value = !mobileMenuVisible.value
+}
+
+const handleMobileMenuSelect = (index) => {
+  mobileMenuVisible.value = false
+  if (index === '/service') {
+    checkLogin('/service')
+  } else {
+    router.push(index)
+  }
+}
+
+const handleMobileLogin = () => {
+  mobileMenuVisible.value = false
+  router.push('/login')
+}
 
 const openMessageCenter = () => {
   router.push('/message')
@@ -480,6 +572,12 @@ onUnmounted(() => {
   padding: 0 24px;
 }
 
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 0;
+}
+
 .logo {
   display: flex;
   align-items: center;
@@ -490,6 +588,7 @@ onUnmounted(() => {
     font-size: 1.5rem;
     font-weight: 700;
     color: #FF8C00;
+    width: 150px ;
   }
 }
 
@@ -656,12 +755,244 @@ onUnmounted(() => {
   color: #666;
 }
 
+.mobile-menu-btn {
+  display: none;
+  cursor: pointer;
+  padding: 8px;
+}
+
+@media (min-width: 769px) {
+  .mobile-menu-btn {
+    display: none !important;
+  }
+}
+
+.mobile-menu-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 999;
+}
+
+.mobile-menu {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 260px;
+  height: 100vh;
+  background: #fff;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  box-shadow: -4px 0 12px rgba(0, 0, 0, 0.1);
+  animation: slideInRight 0.3s ease;
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+.mobile-menu-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+  border-bottom: 1px solid #f0f0f0;
+  background: #FFF8F0;
+}
+
+.mobile-menu-title {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #FF8C00;
+}
+
+.mobile-menu-close {
+  font-size: 20px;
+  cursor: pointer;
+  color: #666;
+  padding: 4px;
+}
+
+.mobile-menu-list {
+  flex: 1;
+  padding: 12px 0;
+  border-bottom: none !important;
+  
+  .el-menu-item {
+    font-size: 1rem;
+    height: 50px;
+    line-height: 50px;
+    padding: 0 20px !important;
+    border-bottom: 1px solid #f5f5f5;
+    
+    &.is-active {
+      color: #FF8C00 !important;
+      background: #FFF8F0 !important;
+    }
+    
+    &:hover {
+      background: #FFF8F0 !important;
+      color: #FF8C00 !important;
+    }
+  }
+}
+
+.mobile-menu-login {
+  padding: 20px;
+  text-align: center;
+  border-top: 1px solid #f0f0f0;
+  
+  .el-button {
+    width: 100%;
+    padding: 12px 0;
+    font-size: 1rem;
+  }
+}
+
+.mobile-menu-user {
+  padding: 20px;
+  border-top: 1px solid #f0f0f0;
+  background: #FFF8F0;
+}
+
+.mobile-user-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.mobile-user-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.mobile-user-name {
+  font-size: 1rem;
+  font-weight: 500;
+  color: #333;
+}
+
+.mobile-user-logout {
+  font-size: 0.85rem;
+  color: #FF8C00;
+  cursor: pointer;
+  
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
 @media (max-width: 768px) {
-  .header-content { padding: 0 12px; }
-  .logo { margin-right: 16px; }
-  .logo-text { font-size: 1.2rem; }
-  .nav-menu .el-menu-item { font-size: 0.95rem; padding: 0 12px; }
-  .user-name { display: none; }
-  .footer-content { grid-template-columns: 1fr; gap: 24px; }
+  .site-header {
+    height: 56px;
+    padding: 0;
+  }
+  
+  .header-content { 
+    padding: 0 12px; 
+    height: 56px;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+  }
+  
+  .header-left {
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+  }
+  
+  .logo { 
+    margin-right: 0 !important; 
+    flex-shrink: 0 !important;
+    gap: 4px !important;
+    min-width: 0 !important;
+    flex: 0 0 auto !important;
+    
+    .el-icon {
+      font-size: 22px !important;
+    }
+    
+    .logo-text { 
+      font-size: 0.85rem !important; 
+      font-weight: 600 !important;
+      color: #FF8C00 !important;
+      white-space: nowrap !important;
+      overflow: hidden !important;
+      text-overflow: ellipsis !important;
+      max-width: 100px !important;
+      display: block !important;
+    }
+  }
+  
+  .nav-menu {
+    display: none !important;
+  }
+  
+  .header-right {
+    display: flex !important;
+    align-items: center !important;
+    gap: 0 !important;
+    flex-shrink: 0 !important;
+  }
+  
+  .login-btn {
+    display: none !important;
+  }
+  
+  .user-dropdown {
+    display: flex !important;
+    align-items: center !important;
+  }
+  
+  .user-info {
+    padding: 4px 8px !important;
+    gap: 6px !important;
+  }
+  
+  .user-avatar {
+    width: 32px !important;
+    height: 32px !important;
+    border-width: 1px !important;
+  }
+  
+  .user-name { 
+    display: block !important;
+    font-size: 0.85rem !important;
+    max-width: 60px !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+  }
+  
+  .dropdown-icon {
+    display: none !important;
+  }
+  
+  .mobile-menu-btn {
+    display: flex !important;
+    align-items: center !important;
+    flex-shrink: 0 !important;
+    padding: 6px !important;
+  }
+  
+  .footer-content { 
+    grid-template-columns: 1fr; 
+    gap: 24px; 
+  }
+  
+  .site-main {
+    min-height: calc(100vh - 56px - 280px);
+  }
 }
 </style>

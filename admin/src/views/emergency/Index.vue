@@ -48,11 +48,20 @@
           <template #default="{ row }">{{ row.responseTime || '-' }}</template>
         </el-table-column>
         <el-table-column prop="handleResult" label="处理结果" show-overflow-tooltip />
-        <el-table-column label="操作" width="200" fixed="right">
+        <el-table-column label="操作" width="100" fixed="right">
           <template #default="{ row }">
-            <el-button text type="primary" @click="handleDetail(row)">详情</el-button>
-            <el-button v-if="row.status === 0" text type="warning" @click="handleRespond(row)">响应</el-button>
-            <el-button v-if="row.status === 1" text type="success" @click="handleComplete(row)">完成</el-button>
+            <el-dropdown trigger="click" @command="(cmd) => handleCommand(cmd, row)">
+              <el-button text type="primary">
+                操作<el-icon class="el-icon--right"><ArrowDown /></el-icon>
+              </el-button>
+              <template #dropdown>
+                <el-dropdown-menu>
+                  <el-dropdown-item command="detail">详情</el-dropdown-item>
+                  <el-dropdown-item v-if="row.status === 0" command="respond">响应</el-dropdown-item>
+                  <el-dropdown-item v-if="row.status === 1" command="complete">完成</el-dropdown-item>
+                </el-dropdown-menu>
+              </template>
+            </el-dropdown>
           </template>
         </el-table-column>
       </el-table>
@@ -127,6 +136,7 @@
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
+import { ArrowDown } from '@element-plus/icons-vue'
 import { getEmergencyCallList, handleEmergencyCall, completeEmergencyCall } from '../../api'
 
 const loading = ref(false)
@@ -161,6 +171,15 @@ const loadData = async () => {
 }
 
 const handleDetail = (row) => { currentCall.value = row; detailVisible.value = true }
+
+const handleCommand = (cmd, row) => {
+  const actions = {
+    detail: handleDetail,
+    respond: handleRespond,
+    complete: handleComplete
+  }
+  actions[cmd]?.(row)
+}
 
 const handleRespond = (row) => {
   currentCall.value = row

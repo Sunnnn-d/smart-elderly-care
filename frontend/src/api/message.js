@@ -42,3 +42,6 @@ export const deleteAdminMessage = (messageId) => request.delete(`/message/admin/
 
 // 获取消息类型列表
 export const getMessageTypes = () => request.get('/message/types')
+
+// 客户端用户发送消息给管理员
+export const sendAppMessageToAdmin = (data) => request.post('/message/app-user/send-to-admin', data)
